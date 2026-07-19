@@ -11,8 +11,8 @@ const isProduction = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
-    client,
     usePlural: true,
+    transaction: false,
   }),
   emailAndPassword: {
     enabled: true,
