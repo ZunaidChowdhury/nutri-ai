@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Textarea } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
+import { Chip } from '@heroui/chip';
 import { UploadButton } from '@uploadthing/react';
 import { z } from 'zod';
 import { createMeal } from '@/lib/actions/meal';
 import { getAuthToken } from '@/lib/core/server';
+import { classifyMeal, type ClassificationResult } from '@/lib/api/classification';
+import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
 import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
 const CUISINE_TAGS = [
@@ -35,6 +38,15 @@ interface FieldErrors {
   [key: string]: string;
 }
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function AddMealPage() {
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState('');
@@ -53,10 +65,37 @@ export default function AddMealPage() {
     cuisineTag: '',
   });
 
+  const [classification, setClassification] = useState<ClassificationResult | null>(null);
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [userOverrodeCuisine, setUserOverrodeCuisine] = useState(false);
+  const tokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    getAuthToken().then((t) => { tokenRef.current = t; });
+  }, []);
+
   const updateField = <K extends keyof MealFormData>(key: K, value: MealFormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: '' }));
   };
+
+  const debouncedTitle = useDebounce(form.title, 800);
+  const debouncedDescription = useDebounce(form.shortDescription, 800);
+
+  useEffect(() => {
+    if (!debouncedTitle || !debouncedDescription || !tokenRef.current) return;
+    let cancelled = false;
+    setIsClassifying(true);
+    classifyMeal(debouncedTitle, debouncedDescription, tokenRef.current).then((result) => {
+      if (cancelled) return;
+      setClassification(result);
+      setIsClassifying(false);
+      if (result && !userOverrodeCuisine && !form.cuisineTag) {
+        updateField('cuisineTag', result.cuisineTag);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [debouncedTitle, debouncedDescription]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,22 +191,38 @@ export default function AddMealPage() {
               isRequired
             />
 
-            <Select
-              label="Cuisine"
-              placeholder="Select a cuisine type"
-              selectedKeys={form.cuisineTag ? [form.cuisineTag] : []}
-              onSelectionChange={(keys) => {
-                const val = Array.from(keys)[0] as string;
-                updateField('cuisineTag', val || '');
-              }}
-              isInvalid={!!errors.cuisineTag}
-              errorMessage={errors.cuisineTag}
-              isRequired
-            >
-              {CUISINE_TAGS.map((tag) => (
-                <SelectItem key={tag}>{tag}</SelectItem>
-              ))}
-            </Select>
+            <div className="flex flex-col gap-2">
+              <Select
+                label="Cuisine"
+                placeholder="Select a cuisine type"
+                selectedKeys={form.cuisineTag ? [form.cuisineTag] : []}
+                onSelectionChange={(keys) => {
+                  const val = Array.from(keys as Set<string>)[0] as string;
+                  setUserOverrodeCuisine(true);
+                  updateField('cuisineTag', val || '');
+                }}
+                isInvalid={!!errors.cuisineTag}
+                errorMessage={errors.cuisineTag}
+                isRequired
+              >
+                {CUISINE_TAGS.map((tag) => (
+                  <SelectItem key={tag}>{tag}</SelectItem>
+                ))}
+              </Select>
+
+              {isClassifying && (
+                <AgentLoadingState agentName="Food Classification" />
+              )}
+
+              {!isClassifying && classification && !userOverrodeCuisine && form.cuisineTag === classification.cuisineTag && (
+                <div className="flex items-center gap-2 text-xs text-default-500">
+                  <span>AI suggested</span>
+                  <Chip size="sm" variant="flat" color="secondary">
+                    {Math.round(classification.confidence * 100)}% confidence
+                  </Chip>
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
