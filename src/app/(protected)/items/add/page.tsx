@@ -25,14 +25,23 @@ const mealSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   shortDescription: z.string().min(1, 'Short description is required'),
   fullDescription: z.string().min(1, 'Full description is required'),
-  calories: z.number().min(0, 'Calories must be 0 or greater'),
-  protein: z.number().min(0, 'Protein must be 0 or greater'),
-  carbs: z.number().min(0, 'Carbs must be 0 or greater'),
-  fat: z.number().min(0, 'Fat must be 0 or greater'),
+  calories: z.coerce.number().min(0, 'Calories must be 0 or greater'),
+  protein: z.coerce.number().min(0, 'Protein must be 0 or greater'),
+  carbs: z.coerce.number().min(0, 'Carbs must be 0 or greater'),
+  fat: z.coerce.number().min(0, 'Fat must be 0 or greater'),
   cuisineTag: z.string().min(1, 'Cuisine tag is required'),
 });
 
-type MealFormData = z.infer<typeof mealSchema>;
+interface FormState {
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  calories: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  cuisineTag: string;
+}
 
 interface FieldErrors {
   [key: string]: string;
@@ -54,14 +63,14 @@ export default function AddMealPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState('');
-  const [form, setForm] = useState<MealFormData>({
+  const [form, setForm] = useState<FormState>({
     title: '',
     shortDescription: '',
     fullDescription: '',
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
+    calories: '',
+    protein: '',
+    carbs: '',
+    fat: '',
     cuisineTag: '',
   });
 
@@ -74,7 +83,7 @@ export default function AddMealPage() {
     getAuthToken().then((t) => { tokenRef.current = t; });
   }, []);
 
-  const updateField = <K extends keyof MealFormData>(key: K, value: MealFormData[K]) => {
+  const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: '' }));
   };
@@ -101,7 +110,15 @@ export default function AddMealPage() {
     e.preventDefault();
     setServerError('');
 
-    const result = mealSchema.safeParse(form);
+    const payload = {
+      ...form,
+      calories: form.calories || '0',
+      protein: form.protein || '0',
+      carbs: form.carbs || '0',
+      fat: form.fat || '0',
+    };
+
+    const result = mealSchema.safeParse(payload);
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
       for (const issue of result.error.issues) {
@@ -128,11 +145,11 @@ export default function AddMealPage() {
           shortDescription: form.shortDescription,
           fullDescription: form.fullDescription,
           imageUrl: imageUrl || undefined,
-          calories: form.calories,
+          calories: result.data.calories,
           macros: {
-            protein: form.protein,
-            carbs: form.carbs,
-            fat: form.fat,
+            protein: result.data.protein,
+            carbs: result.data.carbs,
+            fat: result.data.fat,
           },
           cuisineTag: form.cuisineTag,
         },
@@ -160,7 +177,7 @@ export default function AddMealPage() {
           <h2 className="text-lg font-semibold">Meal Details</h2>
         </CardHeader>
         <CardBody className="gap-5 p-6">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
             <Input
               label="Title"
               placeholder="e.g., Grilled Chicken Salad"
@@ -229,31 +246,28 @@ export default function AddMealPage() {
                 label="Calories"
                 type="number"
                 placeholder="0"
-                value={String(form.calories)}
-                onValueChange={(v) => updateField('calories', Number(v) || 0)}
+                value={form.calories}
+                onValueChange={(v) => updateField('calories', v)}
                 isInvalid={!!errors.calories}
                 errorMessage={errors.calories}
-                isRequired
               />
               <Input
                 label="Protein (g)"
                 type="number"
                 placeholder="0"
-                value={String(form.protein)}
-                onValueChange={(v) => updateField('protein', Number(v) || 0)}
+                value={form.protein}
+                onValueChange={(v) => updateField('protein', v)}
                 isInvalid={!!errors.protein}
                 errorMessage={errors.protein}
-                isRequired
               />
               <Input
                 label="Carbs (g)"
                 type="number"
                 placeholder="0"
-                value={String(form.carbs)}
-                onValueChange={(v) => updateField('carbs', Number(v) || 0)}
+                value={form.carbs}
+                onValueChange={(v) => updateField('carbs', v)}
                 isInvalid={!!errors.carbs}
                 errorMessage={errors.carbs}
-                isRequired
               />
             </div>
 
@@ -261,24 +275,27 @@ export default function AddMealPage() {
               label="Fat (g)"
               type="number"
               placeholder="0"
-              value={String(form.fat)}
-              onValueChange={(v) => updateField('fat', Number(v) || 0)}
+              value={form.fat}
+              onValueChange={(v) => updateField('fat', v)}
               isInvalid={!!errors.fat}
               errorMessage={errors.fat}
-              isRequired
             />
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-default-700">
-                Meal Image <span className="text-default-400">(optional)</span>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-small font-medium text-foreground">
+                Meal Image <span className="text-default-400 text-small">(optional)</span>
               </label>
               {imageUrl ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-default-200 dark:border-default-100 bg-default-50">
                   <img
                     src={imageUrl}
                     alt="Uploaded meal"
-                    className="w-20 h-20 object-cover rounded-lg border border-default-200"
+                    className="w-20 h-20 object-cover rounded-lg"
                   />
+                  <div className="flex flex-col gap-1 flex-1">
+                    <p className="text-sm text-foreground">Image uploaded</p>
+                    <p className="text-xs text-default-400 truncate">{imageUrl.split('/').pop()}</p>
+                  </div>
                   <Button
                     size="sm"
                     variant="flat"
@@ -289,20 +306,22 @@ export default function AddMealPage() {
                   </Button>
                 </div>
               ) : (
-                <UploadButton<OurFileRouter, 'mealImage'>
-                  endpoint="mealImage"
-                  onClientUploadComplete={(res) => {
-                    if (res?.[0]) {
-                      setImageUrl(res[0].url);
-                    }
-                    setIsUploading(false);
-                  }}
-                  onUploadError={(error: Error) => {
-                    setServerError(error.message);
-                    setIsUploading(false);
-                  }}
-                  onUploadBegin={() => setIsUploading(true)}
-                />
+                <div className="p-4 rounded-xl border-2 border-dashed border-default-200 dark:border-default-100 bg-default-50/50 hover:bg-default-100/50 transition-colors">
+                  <UploadButton<OurFileRouter, 'mealImage'>
+                    endpoint="mealImage"
+                    onClientUploadComplete={(res) => {
+                      if (res?.[0]) {
+                        setImageUrl(res[0].url);
+                      }
+                      setIsUploading(false);
+                    }}
+                    onUploadError={(error: Error) => {
+                      setServerError(error.message);
+                      setIsUploading(false);
+                    }}
+                    onUploadBegin={() => setIsUploading(true)}
+                  />
+                </div>
               )}
             </div>
 
