@@ -6,6 +6,7 @@ import { Chip } from '@heroui/chip';
 import { getUserMeals } from '@/lib/api/dashboard';
 import { getAuthToken } from '@/lib/core/server';
 import type { Meal } from '@/lib/types/meal';
+import { CaloriesLineChart } from './CaloriesLineChart';
 
 export function DashboardContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -75,6 +76,15 @@ export function DashboardContent() {
           </CardBody>
         </Card>
       </div>
+
+      <Card className="border border-default-200 dark:border-default-100">
+        <CardHeader className="pb-0 px-5 pt-5">
+          <h2 className="text-lg font-semibold">Calories Over Time</h2>
+        </CardHeader>
+        <CardBody className="p-5">
+          <CaloriesLineChart meals={meals} />
+        </CardBody>
+      </Card>
 
       <Card className="border border-default-200 dark:border-default-100">
         <CardHeader className="pb-0 px-5 pt-5">
