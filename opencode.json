@@ -3,7 +3,8 @@
   "instructions": [
     "engineering/AGENTS.md",
     "engineering/architecture.md",
-    "engineering/tasks.md"
+    "engineering/tasks.md",
+    "engineering/NutriAI_PRD_v4_Simplified.md"
   ],
   "mcp": {
     "github": {
