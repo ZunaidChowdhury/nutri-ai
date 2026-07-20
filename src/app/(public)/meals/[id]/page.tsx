@@ -80,7 +80,7 @@ export default async function MealDetailPage({ params }: Props) {
             </div>
 
             <div className="flex items-center gap-4 text-sm">
-              <span className="flex items-center gap-1 text-yellow-500">
+              <span className="flex items-center gap-1 text-warning">
                 <StarIcon className="size-4" />
                 {meal.rating.toFixed(1)}
               </span>
