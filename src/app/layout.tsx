@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "NutriAI",
   description: "AI-powered nutrition and meal planning assistant",
+  icons: { icon: "/NutriAI-logo.png" },
 };
 
 export default function RootLayout({

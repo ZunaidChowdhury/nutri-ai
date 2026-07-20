@@ -20,24 +20,20 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
-import { HiMenu, HiX } from "react-icons/hi";
+import { HiMenu, HiX, HiChevronDown } from "react-icons/hi";
 
 const loggedOutLinks = [
   { href: "/", label: "Home" },
   { href: "/meals", label: "Explore Meals" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
 ];
 
 const loggedInLinks = [
   { href: "/", label: "Home" },
   { href: "/meals", label: "Explore Meals" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/meal-plan", label: "Meal Plan" },
-  { href: "/items/add", label: "Add Meal" },
-  { href: "/items/manage", label: "Manage Meals" },
+  { href: "/dashboard", label: "Dashboard (AI)" },
+  { href: "/meal-plan", label: "Meal Plan (AI)" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
@@ -65,7 +61,8 @@ export default function Navbar() {
       className="border-b border-divider bg-background/80 backdrop-blur-md"
     >
       <NavbarBrand>
-        <Link href="/" color="foreground" className="text-xl font-bold">
+        <Link href="/" color="foreground" className="flex items-center gap-2 text-xl font-bold">
+          <img src="/NutriAI-logo.png" alt="NutriAI" className="h-7 w-7" />
           NutriAI
         </Link>
       </NavbarBrand>
@@ -93,15 +90,27 @@ export default function Navbar() {
           <NavbarItem>
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
-                <Avatar
-                  as="button"
-                  size="sm"
-                  name={user?.name || user?.email || ""}
-                  src={user?.image || ""}
-                  className="cursor-pointer"
-                />
+                <button className="flex items-center gap-1 cursor-pointer">
+                  <Avatar
+                    size="sm"
+                    name={user?.name || user?.email || ""}
+                    src={user?.image || ""}
+                  />
+                  <HiChevronDown className="text-default-400 text-sm" />
+                </button>
               </DropdownTrigger>
               <DropdownMenu aria-label="User menu">
+                <DropdownItem
+                  key="email"
+                  className="opacity-100 h-auto py-2"
+                  isDisabled
+                  textValue={user?.email || ""}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs text-default-400">Signed in as</span>
+                    <span className="text-sm font-medium">{user?.email}</span>
+                  </div>
+                </DropdownItem>
                 <DropdownItem
                   key="dashboard"
                   onPress={() => router.push("/dashboard")}
@@ -109,10 +118,16 @@ export default function Navbar() {
                   Dashboard
                 </DropdownItem>
                 <DropdownItem
-                  key="settings"
+                  key="addmeal"
+                  onPress={() => router.push("/items/add")}
+                >
+                  Add Meal
+                </DropdownItem>
+                <DropdownItem
+                  key="managemeals"
                   onPress={() => router.push("/items/manage")}
                 >
-                  My Meals
+                  Manage Meals
                 </DropdownItem>
                 <DropdownItem
                   key="signout"

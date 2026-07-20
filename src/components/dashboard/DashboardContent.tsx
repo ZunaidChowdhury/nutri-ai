@@ -135,7 +135,7 @@ export function DashboardContent() {
             onPress={handleAnalyzeNutrition}
             isLoading={isAnalyzing}
           >
-            Analyze My Nutrition
+            Analyze My Nutrition (AI)
           </Button>
         </div>
 
