@@ -32,14 +32,14 @@ export function NotFound() {
           <p className="text-sm text-default-500 text-center max-w-xs">
             The page you are looking for does not exist or has been moved.
           </p>
-          <Button
-            as={Link}
-            href="/"
-            color="primary"
-            variant="flat"
-          >
-            Go home
-          </Button>
+          <Link href="/">
+            <Button
+              color="primary"
+              variant="flat"
+            >
+              Go home
+            </Button>
+          </Link>
         </CardBody>
       </Card>
     </div>

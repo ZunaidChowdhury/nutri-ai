@@ -102,14 +102,14 @@ export default async function MealDetailPage({ params }: Props) {
 
           <p className="text-default-600 leading-relaxed">{meal.fullDescription}</p>
 
-          <Button
-            as={Link}
-            href="/meals"
-            variant="flat"
-            className="self-start"
-          >
-            &larr; Back to explore
-          </Button>
+          <Link href="/meals">
+            <Button
+              variant="flat"
+              className="self-start"
+            >
+              &larr; Back to explore
+            </Button>
+          </Link>
         </div>
       </div>
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { Link } from "@heroui/react";
 import { HiMail, HiLocationMarker } from "react-icons/hi";
 import { FaGithub, FaXTwitter, FaLinkedin } from "react-icons/fa6";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Input, Button, Divider, Link } from "@heroui/react";
-import { FiMail, FiLock } from "react-icons/fi";
+import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { loginSchema } from "@/lib/validation/auth";
 import { authClient } from "@/lib/auth/client";
 
@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -54,23 +55,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setForm({ email: "demo@nutriai.com", password: "DemoPass123!" });
-    setErrors({});
-    setApiError("");
-    setLoading(true);
-    const { error } = await authClient.signIn.email({
-      email: "demo@nutriai.com",
-      password: "DemoPass123!",
-    });
-    setLoading(false);
-    if (error) {
-      setApiError(error.message || "Demo login failed");
-    } else {
-      router.push("/dashboard");
-    }
-  };
-
   const handleGoogleLogin = async () => {
     await authClient.signIn.social({ provider: "google" });
   };
@@ -80,60 +64,6 @@ export default function LoginPage() {
       <Card className="w-full max-w-md p-8">
         <h1 className="mb-2 text-2xl font-bold">Welcome Back</h1>
         <p className="mb-6 text-default-500">Sign in to your NutriAI account</p>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={form.email}
-            onValueChange={(v) => handleChange("email", v)}
-            startContent={<FiMail className="text-default-400" />}
-            isInvalid={!!errors.email}
-            errorMessage={errors.email}
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={form.password}
-            onValueChange={(v) => handleChange("password", v)}
-            startContent={<FiLock className="text-default-400" />}
-            isInvalid={!!errors.password}
-            errorMessage={errors.password}
-          />
-
-          {apiError && (
-            <p className="rounded-md bg-danger-50 p-3 text-sm text-danger">
-              {apiError}
-            </p>
-          )}
-
-          <Button
-            type="submit"
-            color="primary"
-            size="lg"
-            isLoading={loading}
-            className="w-full"
-          >
-            Sign In
-          </Button>
-        </form>
-
-        <div className="mt-4">
-          <Button
-            variant="flat"
-            size="lg"
-            className="w-full"
-            onPress={handleDemoLogin}
-            isDisabled={loading}
-          >
-            Demo Login
-          </Button>
-        </div>
-
-        <Divider className="my-6" />
 
         <Button
           variant="bordered"
@@ -164,6 +94,103 @@ export default function LoginPage() {
         >
           Continue with Google
         </Button>
+
+        <Divider className="my-6" />
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onValueChange={(v) => handleChange("email", v)}
+            startContent={<FiMail className="text-default-400" />}
+            isInvalid={!!errors.email}
+            errorMessage={errors.email}
+          />
+
+          <Input
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={form.password}
+            onValueChange={(v) => handleChange("password", v)}
+            startContent={<FiLock className="text-default-400" />}
+            endContent={
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((p) => !p)}
+                className="text-default-400 hover:text-default-600 outline-none"
+              >
+                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              </button>
+            }
+            isInvalid={!!errors.password}
+            errorMessage={errors.password}
+          />
+
+          {apiError && (
+            <p className="rounded-md bg-danger-50 p-3 text-sm text-danger">
+              {apiError}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            color="primary"
+            size="lg"
+            isLoading={loading}
+            className="w-full"
+          >
+            Sign In
+          </Button>
+        </form>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button
+            variant="bordered"
+            size="md"
+            className="w-full"
+            isDisabled={loading}
+            onPress={async () => {
+              setForm({ email: "t.admin@gmail.com", password: "sd541fvsd1v321" });
+              setErrors({});
+              setApiError("");
+              setLoading(true);
+              const { error } = await authClient.signIn.email({
+                email: "t.admin@gmail.com",
+                password: "sd541fvsd1v321",
+              });
+              setLoading(false);
+              if (!error) router.push("/dashboard");
+              else setApiError(error.message || "Admin login failed");
+            }}
+          >
+            Sign Admin
+          </Button>
+          <Button
+            variant="bordered"
+            size="md"
+            className="w-full"
+            isDisabled={loading}
+            onPress={async () => {
+              setForm({ email: "t.user@gmail.com", password: "sd541fvsd1v321" });
+              setErrors({});
+              setApiError("");
+              setLoading(true);
+              const { error } = await authClient.signIn.email({
+                email: "t.user@gmail.com",
+                password: "sd541fvsd1v321",
+              });
+              setLoading(false);
+              if (!error) router.push("/dashboard");
+              else setApiError(error.message || "User login failed");
+            }}
+          >
+            Sign User
+          </Button>
+        </div>
 
         <p className="mt-6 text-center text-sm text-default-500">
           Don&apos;t have an account?{" "}

@@ -51,16 +51,19 @@ export function MealCard({ meal }: MealCardProps) {
         </div>
       </CardBody>
       <CardFooter className="p-4 pt-0">
-        <Button
-          as={Link}
+        <Link
           href={`/meals/${meal._id}`}
-          variant="flat"
-          color="primary"
-          size="sm"
-          fullWidth
+          className="w-full"
         >
-          View Details
-        </Button>
+          <Button
+            variant="flat"
+            color="primary"
+            size="sm"
+            fullWidth
+          >
+            View Details
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

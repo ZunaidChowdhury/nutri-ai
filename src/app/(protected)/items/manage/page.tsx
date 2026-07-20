@@ -80,9 +80,11 @@ export default function ManageMealsPage() {
               : "You haven't added any meals yet. Create your first meal!"
           }
           action={
-            <Button as={Link} href="/items/add" color="primary" variant="flat">
-              Add Meal
-            </Button>
+            <Link href="/items/add">
+              <Button color="primary" variant="flat">
+                Add Meal
+              </Button>
+            </Link>
           }
         />
       </div>
@@ -98,9 +100,11 @@ export default function ManageMealsPage() {
             {meals.length} meal{meals.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button as={Link} href="/items/add" color="primary" variant="flat">
-          Add Meal
-        </Button>
+        <Link href="/items/add">
+          <Button color="primary" variant="flat">
+            Add Meal
+          </Button>
+        </Link>
       </div>
 
       <div className="hidden md:block">
@@ -135,14 +139,14 @@ export default function ManageMealsPage() {
                 <TableCell>{meal.rating.toFixed(1)}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button
-                      as={Link}
-                      href={`/meals/${meal._id}`}
-                      size="sm"
-                      variant="flat"
-                    >
-                      View
-                    </Button>
+                    <Link href={`/meals/${meal._id}`}>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                      >
+                        View
+                      </Button>
+                    </Link>
                     {canDelete(meal) && (
                       <Button
                         size="sm"

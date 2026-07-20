@@ -1,7 +1,7 @@
 "use client";
 
 import { Switch } from "@heroui/react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/providers/CustomThemeProvider";
 import { useState, useEffect } from "react";
 import { HiSun, HiMoon } from "react-icons/hi";
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
+import { ThemeScript } from "@/components/ThemeScript";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -16,6 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+        <head>
+          <ThemeScript />
+        </head>
       <body className="min-h-full flex flex-col">
         <Providers>
           <Navbar />

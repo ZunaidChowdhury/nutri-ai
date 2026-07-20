@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
@@ -22,12 +22,6 @@ import {
   resetFilters,
 } from '@/store/filtersSlice';
 import type { RootState } from '@/store/store';
-import type { MealsResponse } from '@/lib/types/meal';
-
-interface Props {
-  initialData: MealsResponse | null;
-}
-
 const CUISINE_TAGS = [
   'Italian',
   'Mexican',
@@ -43,18 +37,27 @@ const CUISINE_TAGS = [
   'Vietnamese',
 ];
 
-export function ExploreContent({ initialData }: Props) {
+export function ExploreContent() {
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = useSelector((state: RootState) => state.filters);
+  const [searchInput, setSearchInput] = useState('');
+  const [minCalInput, setMinCalInput] = useState('');
+  const [maxCalInput, setMaxCalInput] = useState('');
 
   useEffect(() => {
-    dispatch(setSearch(searchParams.get('search') || ''));
+    const urlSearch = searchParams.get('search') || '';
+    const urlMin = searchParams.get('minCalories') || '';
+    const urlMax = searchParams.get('maxCalories') || '';
+    setSearchInput(urlSearch);
+    setMinCalInput(urlMin);
+    setMaxCalInput(urlMax);
+    dispatch(setSearch(urlSearch));
     dispatch(setCuisineTag(searchParams.get('cuisineTag') || ''));
-    dispatch(setMinCalories(searchParams.get('minCalories') || ''));
-    dispatch(setMaxCalories(searchParams.get('maxCalories') || ''));
+    dispatch(setMinCalories(urlMin));
+    dispatch(setMaxCalories(urlMax));
     dispatch(
       setSortBy(
         (searchParams.get('sortBy') as 'calories' | 'rating' | 'createdAt') ||
@@ -69,10 +72,30 @@ export function ExploreContent({ initialData }: Props) {
     dispatch(setPage(Number(searchParams.get('page')) || 1));
   }, []);
 
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchInput(value);
+      dispatch(setSearch(value));
+    },
+    [dispatch]
+  );
+
+  const applyCalorieFilter = useCallback(() => {
+    dispatch(setMinCalories(minCalInput));
+    dispatch(setMaxCalories(maxCalInput));
+  }, [dispatch, minCalInput, maxCalInput]);
+
+  const handleCalKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') applyCalorieFilter();
+    },
+    [applyCalorieFilter]
+  );
+
   const queryParams = useMemo(
     () => ({
       search: filters.search || undefined,
-      cuisineTag: filters.cuisineTag || undefined,
+      cuisineTag: filters.cuisineTag ? filters.cuisineTag.toLowerCase() : undefined,
       minCalories: filters.minCalories ? Number(filters.minCalories) : undefined,
       maxCalories: filters.maxCalories ? Number(filters.maxCalories) : undefined,
       sortBy: filters.sortBy,
@@ -83,10 +106,11 @@ export function ExploreContent({ initialData }: Props) {
     [filters]
   );
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isPlaceholderData } = useQuery({
     queryKey: ['meals', queryParams],
     queryFn: () => getAllMeals(queryParams),
-    initialData: filters.page === 1 ? initialData ?? undefined : undefined,
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
   });
 
   const updateUrl = useCallback(() => {
@@ -107,11 +131,16 @@ export function ExploreContent({ initialData }: Props) {
   }, [updateUrl]);
 
   const handleReset = useCallback(() => {
+    setSearchInput('');
+    setMinCalInput('');
+    setMaxCalInput('');
     dispatch(resetFilters());
   }, [dispatch]);
 
+  const total = data?.total ?? 0;
+  const showingCount = data?.data?.length ?? 0;
   const totalPages = data?.totalPages || 1;
-  const isEmpty = !isLoading && (!data?.data || data.data.length === 0);
+  const isEmpty = !isLoading && !isPlaceholderData && (!data?.data || data.data.length === 0);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
@@ -126,8 +155,8 @@ export function ExploreContent({ initialData }: Props) {
         <Input
           label="Search meals"
           placeholder="Search by name..."
-          value={filters.search}
-          onValueChange={(v) => dispatch(setSearch(v))}
+          value={searchInput}
+          onValueChange={handleSearchChange}
           className="w-full md:max-w-md"
           isClearable
         />
@@ -153,16 +182,18 @@ export function ExploreContent({ initialData }: Props) {
             label="Min calories"
             type="number"
             placeholder="0"
-            value={filters.minCalories}
-            onValueChange={(v) => dispatch(setMinCalories(v))}
+            value={minCalInput}
+            onValueChange={setMinCalInput}
+            onKeyDown={handleCalKeyDown}
           />
 
           <Input
             label="Max calories"
             type="number"
             placeholder="1000"
-            value={filters.maxCalories}
-            onValueChange={(v) => dispatch(setMaxCalories(v))}
+            value={maxCalInput}
+            onValueChange={setMaxCalInput}
+            onKeyDown={handleCalKeyDown}
           />
 
           <Select
@@ -201,6 +232,12 @@ export function ExploreContent({ initialData }: Props) {
           </Button>
         )}
       </div>
+
+      {!isLoading && !isEmpty && (
+        <p className="text-sm text-default-500">
+          Showing {showingCount} of {total} meal{total !== 1 ? 's' : ''}
+        </p>
+      )}
 
       {isEmpty ? (
         <EmptyState
