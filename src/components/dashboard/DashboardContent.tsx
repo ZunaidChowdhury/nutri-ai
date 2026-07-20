@@ -6,12 +6,20 @@ import { Chip } from '@heroui/chip';
 import { getUserMeals } from '@/lib/api/dashboard';
 import { getAuthToken } from '@/lib/core/server';
 import type { Meal } from '@/lib/types/meal';
+import { Button } from '@heroui/button';
 import { CaloriesLineChart } from './CaloriesLineChart';
 import { MacroBreakdownChart } from './MacroBreakdownChart';
+import { NutritionReportCard } from './NutritionReportCard';
+import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
+import { analyzeNutrition } from '@/lib/api/nutrition';
+import type { NutritionReport } from '@/lib/types/nutrition';
 
 export function DashboardContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [nutritionReport, setNutritionReport] = useState<NutritionReport | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +45,27 @@ export function DashboardContent() {
 
     return () => { cancelled = true; };
   }, []);
+
+  const handleAnalyzeNutrition = async () => {
+    setAnalysisError('');
+    setIsAnalyzing(true);
+
+    try {
+      const token = await getAuthToken();
+      if (!token) return;
+
+      const result = await analyzeNutrition(token);
+      if (result) {
+        setNutritionReport(result);
+      } else {
+        setAnalysisError('Failed to analyze nutrition. Please try again.');
+      }
+    } catch {
+      setAnalysisError('Failed to analyze nutrition. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
   const recentMeals = meals.slice(0, 5);
@@ -95,6 +124,32 @@ export function DashboardContent() {
             <MacroBreakdownChart meals={meals} />
           </CardBody>
         </Card>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">AI Nutrition Analysis</h2>
+          <Button
+            color="secondary"
+            variant="flat"
+            onPress={handleAnalyzeNutrition}
+            isLoading={isAnalyzing}
+          >
+            Analyze My Nutrition
+          </Button>
+        </div>
+
+        {isAnalyzing && <AgentLoadingState agentName="Nutrition Analysis" />}
+
+        {analysisError && (
+          <div className="p-3 rounded-lg bg-danger-50 dark:bg-danger-500/10 text-danger text-sm">
+            {analysisError}
+          </div>
+        )}
+
+        {nutritionReport && !isAnalyzing && (
+          <NutritionReportCard report={nutritionReport} />
+        )}
       </div>
 
       <Card className="border border-default-200 dark:border-default-100">
