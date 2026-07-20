@@ -15,6 +15,7 @@ export async function getAllMeals(
   if (filters.order) params.order = filters.order;
   if (filters.page) params.page = filters.page;
   if (filters.limit) params.limit = filters.limit;
+  if (filters.ownerId) params.ownerId = filters.ownerId;
 
   return serverFetch<MealsResponse>('/meals', { params, token });
 }

@@ -1,19 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Input, Button, Divider, Link } from "@heroui/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { loginSchema } from "@/lib/validation/auth";
-import { authClient } from "@/lib/auth/client";
+import { authClient, useSession } from "@/lib/auth/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!isPending && session?.user) router.push("/dashboard");
+  }, [session, isPending, router]);
+
+  if (isPending || session?.user) return null;
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));

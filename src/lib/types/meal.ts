@@ -39,4 +39,5 @@ export interface MealFilters {
   order?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  ownerId?: string;
 }
