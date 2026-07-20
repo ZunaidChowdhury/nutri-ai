@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 export default function FeaturedMealsSection() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["meals", "featured"],
-    queryFn: () => getAllMeals({ limit: 4, sortBy: "rating", order: "desc" }),
+    queryFn: () => getAllMeals({ limit: 8, sortBy: "rating", order: "desc" }),
     staleTime: 60_000,
   });
 
@@ -23,7 +23,7 @@ export default function FeaturedMealsSection() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <SkeletonMealCard key={i} />
             ))}
           </div>
