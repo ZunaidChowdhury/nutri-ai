@@ -1,5 +1,6 @@
+'use client';
+
 import { Card, CardHeader, CardBody, CardFooter } from '@heroui/card';
-import { Image } from '@heroui/image';
 import { Chip } from '@heroui/chip';
 import { Button } from '@heroui/button';
 import Link from 'next/link';
@@ -12,19 +13,24 @@ interface MealCardProps {
 
 export function MealCard({ meal }: MealCardProps) {
   return (
-    <Card className="w-full border border-default-200 dark:border-default-100">
+    <Card className="group w-full border border-default-200 dark:border-default-100">
       <CardHeader className="p-0 overflow-hidden">
-        <Image
-          alt={meal.title}
-          className="object-cover w-full h-48"
-          src={meal.imageUrl || '/placeholder-meal.svg'}
-          fallbackSrc="/placeholder-meal.svg"
-          radius="none"
-        />
+        <Link href={`/meals/${meal._id}`} className="block w-full h-48 overflow-hidden">
+          <img
+            alt={meal.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            src={meal.imageUrl || '/placeholder-meal.svg'}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder-meal.svg';
+            }}
+          />
+        </Link>
       </CardHeader>
       <CardBody className="gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-semibold line-clamp-1">{meal.title}</h3>
+          <Link href={`/meals/${meal._id}`}>
+            <h3 className="text-lg font-semibold line-clamp-1 group-hover:text-primary transition-colors">{meal.title}</h3>
+          </Link>
           <Chip
             size="sm"
             variant="flat"

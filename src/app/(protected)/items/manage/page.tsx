@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import { Image } from '@heroui/image';
+import { Pagination } from '@heroui/pagination';
 import {
   Modal,
   ModalContent,
@@ -34,22 +35,24 @@ export default function ManageMealsPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Meal | null>(null);
+  const [page, setPage] = useState(1);
 
   const userId = session?.user?.id;
   const user = session?.user as { id: string; role?: 'user' | 'admin' } | undefined;
   const userRole = user?.role;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['meals', 'manage'],
-    queryFn: () => getAllMeals({ limit: 100 }),
+    queryKey: ['meals', 'manage', { page, role: userRole, userId }],
+    queryFn: () => {
+      if (userRole === 'admin') return getAllMeals({ limit: 50, page });
+      return getAllMeals({ limit: 50, page, ownerId: userId });
+    },
     enabled: !!userId,
   });
 
-  const meals = useMemo(() => {
-    if (!data?.data) return [];
-    if (userRole === 'admin') return data.data;
-    return data.data.filter((m) => m.ownerId === userId);
-  }, [data, userId, userRole]);
+  const totalPages = data?.totalPages ?? 1;
+
+  const meals = data?.data ?? [];
 
   const deleteMutation = useMutation({
     mutationFn: async (mealId: string) => {
@@ -183,6 +186,18 @@ export default function ManageMealsPage() {
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && userRole === 'admin' && (
+        <div className="flex justify-center mt-2">
+          <Pagination
+            total={totalPages}
+            page={page}
+            onChange={setPage}
+            color="primary"
+            showControls
+          />
+        </div>
+      )}
 
       <Modal
         isOpen={!!deleteTarget}

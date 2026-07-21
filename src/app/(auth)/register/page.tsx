@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Input, Button, Divider, Link } from "@heroui/react";
 import { FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiUpload } from "react-icons/fi";
 import { registerSchema } from "@/lib/validation/auth";
-import { authClient } from "@/lib/auth/client";
+import { authClient, useSession } from "@/lib/auth/client";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
@@ -23,6 +24,12 @@ export default function RegisterPage() {
   const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!isPending && session?.user) router.push("/dashboard");
+  }, [session, isPending, router]);
+
+  if (isPending || session?.user) return null;
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
