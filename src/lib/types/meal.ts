@@ -14,6 +14,11 @@ export interface Meal {
   cuisineTag: string;
   rating: number;
   createdAt: string;
+  owner?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface MealsResponse {

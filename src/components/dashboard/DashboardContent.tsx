@@ -12,11 +12,13 @@ import { MacroBreakdownChart } from './MacroBreakdownChart';
 import { NutritionReportCard } from './NutritionReportCard';
 import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
 import { analyzeNutrition } from '@/lib/api/nutrition';
+import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import type { NutritionReport } from '@/lib/types/nutrition';
 
 export function DashboardContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<Error | null>(null);
   const [nutritionReport, setNutritionReport] = useState<NutritionReport | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState('');
@@ -36,8 +38,11 @@ export function DashboardContent() {
 
         const res = await getUserMeals(ownerId, token, 30);
         if (!cancelled) setMeals(res.data);
-      } catch {
-        if (!cancelled) setMeals([]);
+      } catch (err) {
+        if (!cancelled) {
+          setMeals([]);
+          setLoadError(err instanceof Error ? err : new Error(String(err)));
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -69,6 +74,10 @@ export function DashboardContent() {
 
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
   const recentMeals = meals.slice(0, 5);
+
+  if (loadError) {
+    return <ErrorFallback error={loadError} />;
+  }
 
   if (isLoading) {
     return (

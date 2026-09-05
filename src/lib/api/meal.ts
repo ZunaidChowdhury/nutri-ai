@@ -1,5 +1,5 @@
 import { serverFetch } from '@/lib/core/server';
-import type { MealFilters, MealsResponse, MealDetailResponse, Meal } from '@/lib/types/meal';
+import type { MealFilters, MealsResponse, MealDetailResponse } from '@/lib/types/meal';
 
 export async function getAllMeals(
   filters: MealFilters = {},

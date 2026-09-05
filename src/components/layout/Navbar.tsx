@@ -20,6 +20,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
+import { AdminShieldIcon } from "@/components/ui/icons";
 import { HiMenu, HiX, HiChevronDown } from "react-icons/hi";
 
 const loggedOutLinks = [
@@ -42,8 +43,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const user = session?.user;
+  const user = session?.user as { name?: string; email?: string; image?: string; role?: 'user' | 'admin' } | undefined;
   const isLoggedIn = !!user;
+  const isAdmin = user?.role === 'admin';
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
   const links = isLoggedIn ? loggedInLinks : loggedOutLinks;
 
   const handleSignOut = useCallback(async () => {
@@ -90,7 +93,18 @@ export default function Navbar() {
           <NavbarItem>
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
-                <button className="flex items-center gap-1 cursor-pointer">
+                <button className="flex items-center gap-1.5 cursor-pointer">
+                  <span className="hidden sm:inline text-sm font-medium text-default-600">
+                    Hi, {firstName}
+                  </span>
+                  {isAdmin && (
+                    <span
+                      className="flex h-4 w-4 items-center justify-center rounded-full bg-success text-background"
+                      title="Admin"
+                    >
+                      <AdminShieldIcon className="h-3 w-3" />
+                    </span>
+                  )}
                   <Avatar
                     size="sm"
                     name={user?.name || user?.email || ""}
@@ -100,42 +114,61 @@ export default function Navbar() {
                 </button>
               </DropdownTrigger>
               <DropdownMenu aria-label="User menu">
-                <DropdownItem
-                  key="email"
-                  className="opacity-100 h-auto py-2"
-                  isDisabled
-                  textValue={user?.email || ""}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs text-default-400">Signed in as</span>
-                    <span className="text-sm font-medium">{user?.email}</span>
-                  </div>
-                </DropdownItem>
-                <DropdownItem
-                  key="dashboard"
-                  onPress={() => router.push("/dashboard")}
-                >
-                  Dashboard
-                </DropdownItem>
-                <DropdownItem
-                  key="addmeal"
-                  onPress={() => router.push("/items/add")}
-                >
-                  Add Meal
-                </DropdownItem>
-                <DropdownItem
-                  key="managemeals"
-                  onPress={() => router.push("/items/manage")}
-                >
-                  Manage Meals
-                </DropdownItem>
-                <DropdownItem
-                  key="signout"
-                  color="danger"
-                  onPress={handleSignOut}
-                >
-                  Sign Out
-                </DropdownItem>
+                {[
+                  <DropdownItem
+                    key="email"
+                    className="opacity-100 h-auto py-2"
+                    isDisabled
+                    textValue={user?.email || ""}
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs text-default-400">Signed in as</span>
+                      <span className="text-sm font-medium">{user?.email}</span>
+                    </div>
+                  </DropdownItem>,
+                  <DropdownItem
+                    key="dashboard"
+                    onPress={() => router.push("/dashboard")}
+                  >
+                    Dashboard
+                  </DropdownItem>,
+                  <DropdownItem
+                    key="addmeal"
+                    onPress={() => router.push("/items/add")}
+                  >
+                    Add Meal
+                  </DropdownItem>,
+                  <DropdownItem
+                    key="managemeals"
+                    onPress={() => router.push("/items/manage")}
+                  >
+                    Manage Meals
+                  </DropdownItem>,
+                  ...(isAdmin
+                    ? [
+                        <DropdownItem
+                          key="allmeals"
+                          showDivider
+                          onPress={() => router.push("/admin/meals")}
+                        >
+                          All Meals
+                        </DropdownItem>,
+                        <DropdownItem
+                          key="allusers"
+                          onPress={() => router.push("/admin/users")}
+                        >
+                          All Users
+                        </DropdownItem>,
+                      ]
+                    : []),
+                  <DropdownItem
+                    key="signout"
+                    color="danger"
+                    onPress={handleSignOut}
+                  >
+                    Sign Out
+                  </DropdownItem>,
+                ]}
               </DropdownMenu>
             </Dropdown>
           </NavbarItem>
@@ -196,16 +229,44 @@ export default function Navbar() {
           </>
         )}
         {isLoggedIn && (
-          <NavbarMenuItem>
-            <Link
-              color="danger"
-              size="lg"
-              className="w-full cursor-pointer"
-              onPress={() => { setIsMenuOpen(false); handleSignOut(); }}
-            >
-              Sign Out
-            </Link>
-          </NavbarMenuItem>
+          <>
+            {isAdmin && (
+              <>
+                <NavbarMenuItem>
+                  <Link
+                    href="/admin/meals"
+                    color="foreground"
+                    size="lg"
+                    className="w-full"
+                    onPress={() => setIsMenuOpen(false)}
+                  >
+                    All Meals
+                  </Link>
+                </NavbarMenuItem>
+                <NavbarMenuItem>
+                  <Link
+                    href="/admin/users"
+                    color="foreground"
+                    size="lg"
+                    className="w-full"
+                    onPress={() => setIsMenuOpen(false)}
+                  >
+                    All Users
+                  </Link>
+                </NavbarMenuItem>
+              </>
+            )}
+            <NavbarMenuItem>
+              <Link
+                color="danger"
+                size="lg"
+                className="w-full cursor-pointer"
+                onPress={() => { setIsMenuOpen(false); handleSignOut(); }}
+              >
+                Sign Out
+              </Link>
+            </NavbarMenuItem>
+          </>
         )}
       </NavbarMenu>
     </HeroNavbar>

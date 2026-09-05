@@ -155,8 +155,14 @@ export default function MealPlanPage() {
 
       setPlan(result.days);
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e?.message || 'Failed to generate meal plan. Please try again.');
+      const e = err as { code?: string; status?: number; message?: string };
+      if (e?.status === 401) {
+        setError('Your session has expired. Please sign in again.');
+      } else if (e?.code === 'RATE_LIMITED' || e?.status === 429) {
+        setError('You have reached the meal-planning limit. Please try again later.');
+      } else {
+        setError(e?.message || 'Failed to generate meal plan. Please try again.');
+      }
     } finally {
       setIsGenerating(false);
     }

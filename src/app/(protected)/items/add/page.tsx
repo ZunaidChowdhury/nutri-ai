@@ -158,8 +158,14 @@ export default function AddMealPage() {
 
       router.push('/items/manage');
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      setServerError(error?.message || 'Failed to create meal. Please try again.');
+      const error = err as { code?: string; status?: number; message?: string };
+      if (error?.status === 401) {
+        setServerError('Your session has expired. Please sign in again.');
+      } else if (error?.status === 403) {
+        setServerError("You don't have permission to create meals.");
+      } else {
+        setServerError(error?.message || 'Failed to create meal. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -161,20 +161,20 @@ export default function LoginPage() {
             className="w-full"
             isDisabled={loading}
             onPress={async () => {
-              setForm({ email: "t.admin@gmail.com", password: "sd541fvsd1v321" });
+              setForm({ email: "demo@nutriai.com", password: "DemoPass123!" });
               setErrors({});
               setApiError("");
               setLoading(true);
               const { error } = await authClient.signIn.email({
-                email: "t.admin@gmail.com",
-                password: "sd541fvsd1v321",
+                email: "demo@nutriai.com",
+                password: "DemoPass123!",
               });
               setLoading(false);
               if (!error) router.push("/dashboard");
-              else setApiError(error.message || "Admin login failed");
+              else setApiError(error.message || "Demo login failed");
             }}
           >
-            Sign Admin
+            Demo Login
           </Button>
           <Button
             variant="bordered"
@@ -182,20 +182,20 @@ export default function LoginPage() {
             className="w-full"
             isDisabled={loading}
             onPress={async () => {
-              setForm({ email: "t.user@gmail.com", password: "sd541fvsd1v321" });
+              setForm({ email: "admin@nutriai.com", password: "sd541fvsd1v321" });
               setErrors({});
               setApiError("");
               setLoading(true);
               const { error } = await authClient.signIn.email({
-                email: "t.user@gmail.com",
+                email: "admin@nutriai.com",
                 password: "sd541fvsd1v321",
               });
               setLoading(false);
               if (!error) router.push("/dashboard");
-              else setApiError(error.message || "User login failed");
+              else setApiError(error.message || "Admin login failed");
             }}
           >
-            Sign User
+            Admin Login
           </Button>
         </div>
 

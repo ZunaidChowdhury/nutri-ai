@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
@@ -9,8 +9,10 @@ import { Pagination } from '@heroui/pagination';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllMeals } from '@/lib/api/meal';
+import type { MealsResponse } from '@/lib/types/meal';
 import { MealGrid } from './MealGrid';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import {
   setSearch,
   setCuisineTag,
@@ -22,6 +24,7 @@ import {
   resetFilters,
 } from '@/store/filtersSlice';
 import type { RootState } from '@/store/store';
+
 const CUISINE_TAGS = [
   'Italian',
   'Mexican',
@@ -37,17 +40,64 @@ const CUISINE_TAGS = [
   'Vietnamese',
 ];
 
-export function ExploreContent() {
+const PAGE_SIZE = 12;
+const SEARCH_DEBOUNCE_MS = 400;
+
+export function ExploreContent({
+  initialData,
+}: {
+  initialData?: MealsResponse;
+}) {
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = useSelector((state: RootState) => state.filters);
-  const [searchInput, setSearchInput] = useState('');
-  const [minCalInput, setMinCalInput] = useState('');
-  const [maxCalInput, setMaxCalInput] = useState('');
+  const [searchInput, setSearchInput] = useState(
+    () => searchParams.get('search') || ''
+  );
+  const [minCalInput, setMinCalInput] = useState(
+    () => searchParams.get('minCalories') || ''
+  );
+  const [maxCalInput, setMaxCalInput] = useState(
+    () => searchParams.get('maxCalories') || ''
+  );
+
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastWrittenUrl = useRef<string | null>(null);
+  const skipFirstUrlWrite = useRef(true);
 
   useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
+  const buildUrl = useCallback(
+    (f: RootState['filters']) => {
+      const params = new URLSearchParams();
+      if (f.search) params.set('search', f.search);
+      if (f.cuisineTag) params.set('cuisineTag', f.cuisineTag);
+      if (f.minCalories) params.set('minCalories', f.minCalories);
+      if (f.maxCalories) params.set('maxCalories', f.maxCalories);
+      if (f.sortBy !== 'createdAt') params.set('sortBy', f.sortBy);
+      if (f.order !== 'desc') params.set('order', f.order);
+      if (f.page > 1) params.set('page', String(f.page));
+      const qs = params.toString();
+      return qs ? `${pathname}?${qs}` : pathname;
+    },
+    [pathname]
+  );
+
+  // Sync Redux state (and the uncontrolled input mirrors) from the URL,
+  // but ignore URL updates that we wrote ourselves.
+  useEffect(() => {
+    const currentUrl = `${pathname}${searchParams.toString()}`;
+    if (lastWrittenUrl.current !== null && lastWrittenUrl.current === currentUrl) {
+      lastWrittenUrl.current = null;
+      return;
+    }
+
     const urlSearch = searchParams.get('search') || '';
     const urlMin = searchParams.get('minCalories') || '';
     const urlMax = searchParams.get('maxCalories') || '';
@@ -65,17 +115,31 @@ export function ExploreContent() {
       )
     );
     dispatch(
-      setOrder(
-        (searchParams.get('order') as 'asc' | 'desc') || 'desc'
-      )
+      setOrder((searchParams.get('order') as 'asc' | 'desc') || 'desc')
     );
     dispatch(setPage(Number(searchParams.get('page')) || 1));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, pathname, dispatch]);
+
+  // Write the filter state back to the URL. Skipped on first render so the
+  // initial sync from the URL wins.
+  useEffect(() => {
+    if (skipFirstUrlWrite.current) {
+      skipFirstUrlWrite.current = false;
+      return;
+    }
+    const url = buildUrl(filters);
+    lastWrittenUrl.current = url;
+    router.replace(url, { scroll: false });
+  }, [filters, buildUrl, router]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
       setSearchInput(value);
-      dispatch(setSearch(value));
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        dispatch(setSearch(value));
+      }, SEARCH_DEBOUNCE_MS);
     },
     [dispatch]
   );
@@ -101,34 +165,18 @@ export function ExploreContent() {
       sortBy: filters.sortBy,
       order: filters.order,
       page: filters.page,
-      limit: 12,
+      limit: PAGE_SIZE,
     }),
     [filters]
   );
 
-  const { data, isLoading, isPlaceholderData } = useQuery({
+  const { data, isLoading, isPlaceholderData, isError, error } = useQuery({
     queryKey: ['meals', queryParams],
     queryFn: () => getAllMeals(queryParams),
     staleTime: 30_000,
     placeholderData: (prev) => prev,
+    initialData,
   });
-
-  const updateUrl = useCallback(() => {
-    const params = new URLSearchParams();
-    if (filters.search) params.set('search', filters.search);
-    if (filters.cuisineTag) params.set('cuisineTag', filters.cuisineTag);
-    if (filters.minCalories) params.set('minCalories', filters.minCalories);
-    if (filters.maxCalories) params.set('maxCalories', filters.maxCalories);
-    if (filters.sortBy !== 'createdAt') params.set('sortBy', filters.sortBy);
-    if (filters.order !== 'desc') params.set('order', filters.order);
-    if (filters.page > 1) params.set('page', String(filters.page));
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [filters, pathname, router]);
-
-  useEffect(() => {
-    updateUrl();
-  }, [updateUrl]);
 
   const handleReset = useCallback(() => {
     setSearchInput('');
@@ -137,10 +185,14 @@ export function ExploreContent() {
     dispatch(resetFilters());
   }, [dispatch]);
 
-  const total = data?.total ?? 0;
-  const showingCount = data?.data?.length ?? 0;
-  const totalPages = data?.totalPages || 1;
-  const isEmpty = !isLoading && !isPlaceholderData && (!data?.data || data.data.length === 0);
+  const totalItems = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+  const isEmpty =
+    !isLoading &&
+    !isPlaceholderData &&
+    (!data?.data || data.data.length === 0);
+  const startItem = totalItems === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1;
+  const endItem = totalItems === 0 ? 0 : Math.min(filters.page * PAGE_SIZE, totalItems);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
@@ -165,9 +217,7 @@ export function ExploreContent() {
           <Select
             label="Cuisine"
             placeholder="All cuisines"
-            selectedKeys={
-              filters.cuisineTag ? [filters.cuisineTag] : []
-            }
+            selectedKeys={filters.cuisineTag ? [filters.cuisineTag] : []}
             onSelectionChange={(keys) => {
               const val = Array.from(keys)[0] as string;
               dispatch(setCuisineTag(val || ''));
@@ -216,30 +266,35 @@ export function ExploreContent() {
           </Select>
         </div>
 
-        {(filters.search ||
-          filters.cuisineTag ||
-          filters.minCalories ||
-          filters.maxCalories ||
-          filters.sortBy !== 'createdAt' ||
-          filters.order !== 'desc') && (
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="flat"
+            color="primary"
             size="sm"
-            className="self-start"
-            onPress={handleReset}
+            onPress={applyCalorieFilter}
           >
-            Clear all filters
+            Apply calorie filter
           </Button>
-        )}
+          {(filters.search ||
+            filters.cuisineTag ||
+            filters.minCalories ||
+            filters.maxCalories ||
+            filters.sortBy !== 'createdAt' ||
+            filters.order !== 'desc') && (
+            <Button
+              variant="flat"
+              size="sm"
+              onPress={handleReset}
+            >
+              Clear all filters
+            </Button>
+          )}
+        </div>
       </div>
 
-      {!isLoading && !isEmpty && (
-        <p className="text-sm text-default-500">
-          Showing {showingCount} of {total} meal{total !== 1 ? 's' : ''}
-        </p>
-      )}
-
-      {isEmpty ? (
+      {isError ? (
+        <ErrorFallback error={error as Error} />
+      ) : isEmpty ? (
         <EmptyState
           title="No meals found"
           description="Try adjusting your search or filters to find what you're looking for."
@@ -253,16 +308,30 @@ export function ExploreContent() {
         <MealGrid meals={data?.data || []} isLoading={isLoading} />
       )}
 
-      {!isEmpty && totalPages > 0 && (
-        <div className="flex justify-center mt-4">
+      {!isEmpty && totalPages > 1 && (
+        <div className="mt-4 flex w-full flex-col items-center justify-center gap-3">
+          <p className="text-sm text-default-500">
+            Showing {startItem}-{endItem} of {totalItems} result
+            {totalItems !== 1 ? 's' : ''}
+          </p>
           <Pagination
             total={totalPages}
             page={filters.page}
             onChange={(p) => dispatch(setPage(p))}
             color="primary"
+            variant="light"
             showControls
+            siblings={1}
+            boundaries={1}
           />
         </div>
+      )}
+
+      {!isEmpty && totalPages === 1 && (
+        <p className="mt-4 text-center text-sm text-default-500">
+          Showing {startItem}-{endItem} of {totalItems} result
+          {totalItems !== 1 ? 's' : ''}
+        </p>
       )}
     </div>
   );

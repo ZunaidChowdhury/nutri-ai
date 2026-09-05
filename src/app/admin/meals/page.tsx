@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@heroui/button';
@@ -22,34 +22,29 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/table';
-import { useSession } from '@/lib/auth/client';
-import { getAllMeals } from '@/lib/api/meal';
+import { getAdminMeals } from '@/lib/api/admin';
 import { deleteMeal } from '@/lib/actions/meal';
 import { getAuthToken } from '@/lib/core/server';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { Spinner } from '@/components/feedback/Spinner';
-import { MealCard } from '@/components/meals/MealCard';
 import type { Meal } from '@/lib/types/meal';
 
-export default function ManageMealsPage() {
-  const { data: session } = useSession();
+export default function AdminMealsPage() {
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Meal | null>(null);
   const [page, setPage] = useState(1);
 
-  const userId = session?.user?.id;
-  const user = session?.user as { id: string; role?: 'user' | 'admin' } | undefined;
-  const userRole = user?.role;
-
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['meals', 'manage', { page, userId }],
-    queryFn: () => getAllMeals({ limit: 50, page, ownerId: userId }),
-    enabled: !!userId,
+    queryKey: ['admin', 'meals', { page }],
+    queryFn: async () => {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+      return getAdminMeals({ page, limit: 50 }, token);
+    },
   });
 
   const totalPages = data?.totalPages ?? 1;
-
   const meals = data?.data ?? [];
 
   const deleteMutation = useMutation({
@@ -59,32 +54,22 @@ export default function ManageMealsPage() {
       await deleteMeal(mealId, token);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'meals'] });
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       setDeleteTarget(null);
     },
   });
 
-  const canDelete = (meal: Meal) =>
-    userRole === 'admin' || meal.ownerId === userId;
-
-  if (isLoading) return <Spinner label="Loading meals" />;
-
+  if (isLoading) return <Spinner label="Loading all meals" />;
   if (isError) return <ErrorFallback error={error as Error} />;
 
   if (meals.length === 0) {
     return (
       <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Manage Meals</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">All Meals</h1>
         <EmptyState
           title="No meals yet"
-          description="You haven't added any meals yet. Create your first meal!"
-          action={
-            <Link href="/items/add">
-              <Button color="primary" variant="flat">
-                Add Meal
-              </Button>
-            </Link>
-          }
+          description="No meals have been added to the platform yet."
         />
       </div>
     );
@@ -92,25 +77,19 @@ export default function ManageMealsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-3xl font-bold">Manage Meals</h1>
-          <p className="text-default-500">
-            {meals.length} meal{meals.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <Link href="/items/add">
-          <Button color="primary" variant="flat">
-            Add Meal
-          </Button>
-        </Link>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl md:text-3xl font-bold">All Meals</h1>
+        <p className="text-default-500">
+          {data?.total ?? 0} meal{data?.total !== 1 ? 's' : ''} on the platform
+        </p>
       </div>
 
       <div className="hidden md:block">
-        <Table aria-label="Manage meals table">
+        <Table aria-label="All meals admin table">
           <TableHeader>
             <TableColumn>IMAGE</TableColumn>
             <TableColumn>TITLE</TableColumn>
+            <TableColumn>OWNER</TableColumn>
             <TableColumn>CUISINE</TableColumn>
             <TableColumn>CALORIES</TableColumn>
             <TableColumn>RATING</TableColumn>
@@ -130,6 +109,16 @@ export default function ManageMealsPage() {
                 </TableCell>
                 <TableCell className="font-medium">{meal.title}</TableCell>
                 <TableCell>
+                  {meal.owner ? (
+                    <div className="flex flex-col">
+                      <span className="font-medium">{meal.owner.name}</span>
+                      <span className="text-xs text-default-500">{meal.owner.email}</span>
+                    </div>
+                  ) : (
+                    <span className="text-default-400">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Chip size="sm" variant="flat">
                     {meal.cuisineTag}
                   </Chip>
@@ -139,23 +128,18 @@ export default function ManageMealsPage() {
                 <TableCell>
                   <div className="flex gap-2">
                     <Link href={`/meals/${meal._id}`}>
-                      <Button
-                        size="sm"
-                        variant="flat"
-                      >
+                      <Button size="sm" variant="flat">
                         View
                       </Button>
                     </Link>
-                    {canDelete(meal) && (
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        color="danger"
-                        onPress={() => setDeleteTarget(meal)}
-                      >
-                        Delete
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      color="danger"
+                      onPress={() => setDeleteTarget(meal)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -166,19 +150,33 @@ export default function ManageMealsPage() {
 
       <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
         {meals.map((meal) => (
-          <div key={meal._id} className="relative">
-            <MealCard meal={meal} />
-            {canDelete(meal) && (
-              <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                className="absolute top-2 right-2 z-10"
-                onPress={() => setDeleteTarget(meal)}
-              >
-                Delete
-              </Button>
-            )}
+          <div key={meal._id}>
+            <Link
+              href={`/meals/${meal._id}`}
+              className="flex flex-col gap-2 rounded-xl border border-default-200 p-3 dark:border-default-100"
+            >
+              <Image
+                src={meal.imageUrl || '/placeholder-meal.svg'}
+                alt={meal.title}
+                className="w-full h-36 object-cover rounded-lg"
+                radius="sm"
+                fallbackSrc="/placeholder-meal.svg"
+              />
+              <span className="font-semibold">{meal.title}</span>
+              <span className="text-xs text-default-500">
+                {meal.owner?.name || 'Unknown owner'} · {meal.cuisineTag} ·{' '}
+                {meal.calories} cal
+              </span>
+            </Link>
+            <Button
+              size="sm"
+              variant="flat"
+              color="danger"
+              className="mt-2 w-full"
+              onPress={() => setDeleteTarget(meal)}
+            >
+              Delete
+            </Button>
           </div>
         ))}
       </div>

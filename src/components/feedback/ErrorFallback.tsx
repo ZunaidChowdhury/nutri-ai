@@ -2,13 +2,29 @@
 
 import { Card, CardBody } from '@heroui/card';
 import { Button } from '@heroui/button';
+import Unauthorized from './Unauthorized';
+import Forbidden from './Forbidden';
 
 interface ErrorFallbackProps {
   error?: Error;
   reset?: () => void;
 }
 
+function getStatus(error?: Error): number | undefined {
+  if (!error) return undefined;
+  const e = error as Error & { code?: string; status?: number };
+  if (typeof e.status === 'number') return e.status;
+  if (e.code === 'UNAUTHORIZED') return 401;
+  if (e.code === 'FORBIDDEN') return 403;
+  return undefined;
+}
+
 export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
+  const status = getStatus(error);
+
+  if (status === 401) return <Unauthorized />;
+  if (status === 403) return <Forbidden />;
+
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <Card className="w-full max-w-md border border-danger-200">
