@@ -17,9 +17,9 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="bg-default-50 px-4 py-16 md:px-8 lg:px-16">
+    <section className="bg-surface-secondary px-4 py-16 md:px-8 lg:px-16">
       <div className="mx-auto max-w-xl text-center">
-        <HiMail className="mx-auto mb-4 size-10 text-primary" />
+        <HiMail className="mx-auto mb-4 size-10 text-accent" />
         <h2 className="mb-2 text-3xl font-bold">Stay Updated</h2>
         <p className="mb-8 text-foreground/60">
           Get the latest nutrition tips, new features, and meal ideas delivered
@@ -35,12 +35,12 @@ export default function NewsletterSection() {
             <Input
               type="email"
               value={email}
-              onValueChange={setEmail}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              isRequired
+              aria-label="Email address"
               className="flex-1"
             />
-            <Button type="submit" color="primary">
+            <Button type="submit" variant="primary">
               Subscribe
             </Button>
           </form>

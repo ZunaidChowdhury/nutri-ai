@@ -2,11 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input, Textarea } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
-import { Button } from '@heroui/button';
-import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Chip } from '@heroui/chip';
+import {
+  Button,
+  Card,
+  Chip,
+  FieldError,
+  Input,
+  Label,
+  ListBox,
+  Select,
+  TextArea,
+  TextField,
+} from '@heroui/react';
 import { UploadButton } from '@uploadthing/react';
 import { z } from 'zod';
 import { createMeal } from '@/lib/actions/meal';
@@ -175,72 +182,106 @@ export default function AddMealPage() {
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-2xl mx-auto w-full">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl md:text-3xl font-bold">Add Meal</h1>
-        <p className="text-default-500">Share your nutritious creation with the community</p>
+        <p className="text-muted">Share your nutritious creation with the community</p>
       </div>
 
-      <Card className="border border-default-200 dark:border-default-100">
-        <CardHeader className="pb-0 px-6 pt-6">
+      <Card className="border border-border dark:border-border">
+        <Card.Header className="pb-0 px-6 pt-6">
           <h2 className="text-lg font-semibold">Meal Details</h2>
-        </CardHeader>
-        <CardBody className="gap-5 p-6">
+        </Card.Header>
+        <Card.Content className="gap-5 p-6">
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-            <Input
-              label="Title"
-              placeholder="e.g., Grilled Chicken Salad"
-              value={form.title}
-              onValueChange={(v) => updateField('title', v)}
+            <TextField
               isInvalid={!!errors.title}
-              errorMessage={errors.title}
               isRequired
-            />
+              className="w-full"
+            >
+              <Label>Title</Label>
+              <Input
+                placeholder="e.g., Grilled Chicken Salad"
+                value={form.title}
+                onChange={(e) => updateField('title', e.target.value)}
+                fullWidth
+              />
+              {errors.title && <FieldError>{errors.title}</FieldError>}
+            </TextField>
 
-            <Input
-              label="Short Description"
-              placeholder="A brief summary of the meal"
-              value={form.shortDescription}
-              onValueChange={(v) => updateField('shortDescription', v)}
+            <TextField
               isInvalid={!!errors.shortDescription}
-              errorMessage={errors.shortDescription}
               isRequired
-            />
+              className="w-full"
+            >
+              <Label>Short Description</Label>
+              <Input
+                placeholder="A brief summary of the meal"
+                value={form.shortDescription}
+                onChange={(e) => updateField('shortDescription', e.target.value)}
+                fullWidth
+              />
+              {errors.shortDescription && (
+                <FieldError>{errors.shortDescription}</FieldError>
+              )}
+            </TextField>
 
-            <Textarea
-              label="Full Description"
-              placeholder="Describe the meal in detail, including ingredients and preparation..."
-              value={form.fullDescription}
-              onValueChange={(v) => updateField('fullDescription', v)}
+            <TextField
               isInvalid={!!errors.fullDescription}
-              errorMessage={errors.fullDescription}
               isRequired
-            />
+              className="w-full"
+            >
+              <Label>Full Description</Label>
+              <TextArea
+                placeholder="Describe the meal in detail, including ingredients and preparation..."
+                value={form.fullDescription}
+                onChange={(e) => updateField('fullDescription', e.target.value)}
+                fullWidth
+              />
+              {errors.fullDescription && (
+                <FieldError>{errors.fullDescription}</FieldError>
+              )}
+            </TextField>
 
             <div className="flex flex-col gap-2">
               <Select
-                label="Cuisine"
                 placeholder="Select a cuisine type"
-                selectedKeys={form.cuisineTag ? [form.cuisineTag] : []}
-                onSelectionChange={(keys) => {
-                  const val = Array.from(keys as Set<string>)[0] as string;
+                value={form.cuisineTag || null}
+                onChange={(key) => {
+                  const val = (key as string) || '';
                   setUserOverrodeCuisine(true);
-                  updateField('cuisineTag', val || '');
+                  updateField('cuisineTag', val);
                 }}
                 isInvalid={!!errors.cuisineTag}
-                errorMessage={errors.cuisineTag}
                 isRequired
+                fullWidth
               >
-                {CUISINE_TAGS.map((tag) => (
-                  <SelectItem key={tag}>{tag}</SelectItem>
-                ))}
+                <Label>Cuisine</Label>
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {CUISINE_TAGS.map((tag) => (
+                      <ListBox.Item key={tag} id={tag} textValue={tag}>
+                        {tag}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
+
+              {errors.cuisineTag && (
+                <p className="text-sm text-danger">{errors.cuisineTag}</p>
+              )}
 
               {isClassifying && (
                 <AgentLoadingState agentName="Food Classification" />
               )}
 
               {!isClassifying && classification && !userOverrodeCuisine && form.cuisineTag === classification.cuisineTag && (
-                <div className="flex items-center gap-2 text-xs text-default-500">
+                <div className="flex items-center gap-2 text-xs text-muted">
                   <span>AI suggested</span>
-                  <Chip size="sm" variant="flat" color="secondary">
+                  <Chip size="sm" variant="soft" color="accent">
                     {Math.round(classification.confidence * 100)}% confidence
                   </Chip>
                 </div>
@@ -248,51 +289,71 @@ export default function AddMealPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input
-                label="Calories"
-                type="number"
-                placeholder="0"
-                value={form.calories}
-                onValueChange={(v) => updateField('calories', v)}
+              <TextField
                 isInvalid={!!errors.calories}
-                errorMessage={errors.calories}
-              />
-              <Input
-                label="Protein (g)"
-                type="number"
-                placeholder="0"
-                value={form.protein}
-                onValueChange={(v) => updateField('protein', v)}
+                className="w-full"
+              >
+                <Label>Calories</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={form.calories}
+                  onChange={(e) => updateField('calories', e.target.value)}
+                  fullWidth
+                />
+                {errors.calories && <FieldError>{errors.calories}</FieldError>}
+              </TextField>
+              <TextField
                 isInvalid={!!errors.protein}
-                errorMessage={errors.protein}
-              />
-              <Input
-                label="Carbs (g)"
-                type="number"
-                placeholder="0"
-                value={form.carbs}
-                onValueChange={(v) => updateField('carbs', v)}
+                className="w-full"
+              >
+                <Label>Protein (g)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={form.protein}
+                  onChange={(e) => updateField('protein', e.target.value)}
+                  fullWidth
+                />
+                {errors.protein && <FieldError>{errors.protein}</FieldError>}
+              </TextField>
+              <TextField
                 isInvalid={!!errors.carbs}
-                errorMessage={errors.carbs}
-              />
+                className="w-full"
+              >
+                <Label>Carbs (g)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={form.carbs}
+                  onChange={(e) => updateField('carbs', e.target.value)}
+                  fullWidth
+                />
+                {errors.carbs && <FieldError>{errors.carbs}</FieldError>}
+              </TextField>
             </div>
 
-            <Input
-              label="Fat (g)"
-              type="number"
-              placeholder="0"
-              value={form.fat}
-              onValueChange={(v) => updateField('fat', v)}
+            <TextField
               isInvalid={!!errors.fat}
-              errorMessage={errors.fat}
-            />
+              className="w-full"
+            >
+              <Label>Fat (g)</Label>
+              <Input
+                type="number"
+                placeholder="0"
+                value={form.fat}
+                onChange={(e) => updateField('fat', e.target.value)}
+                fullWidth
+              />
+              {errors.fat && <FieldError>{errors.fat}</FieldError>}
+            </TextField>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-small font-medium text-foreground">
-                Meal Image <span className="text-default-400 text-small">(optional)</span>
+              <label className="text-sm font-medium text-foreground">
+                Meal Image <span className="text-muted text-sm">(optional)</span>
               </label>
               {imageUrl ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl border border-default-200 dark:border-default-100 bg-default-50">
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-border dark:border-border bg-surface-secondary">
                   <img
                     src={imageUrl}
                     alt="Uploaded meal"
@@ -300,19 +361,18 @@ export default function AddMealPage() {
                   />
                   <div className="flex flex-col gap-1 flex-1">
                     <p className="text-sm text-foreground">Image uploaded</p>
-                    <p className="text-xs text-default-400 truncate">{imageUrl.split('/').pop()}</p>
+                    <p className="text-xs text-muted truncate">{imageUrl.split('/').pop()}</p>
                   </div>
                   <Button
                     size="sm"
-                    variant="flat"
-                    color="danger"
+                    variant="danger-soft"
                     onPress={() => setImageUrl('')}
                   >
                     Remove
                   </Button>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl border-2 border-dashed border-default-200 dark:border-default-100 bg-default-50/50 hover:bg-default-100/50 transition-colors">
+                <div className="p-4 rounded-xl border-2 border-dashed border-border dark:border-border bg-surface-secondary/50 hover:bg-surface-secondary/50 transition-colors">
                   <UploadButton<OurFileRouter, 'mealImage'>
                     endpoint="mealImage"
                     onClientUploadComplete={(res) => {
@@ -332,23 +392,23 @@ export default function AddMealPage() {
             </div>
 
             {serverError && (
-              <div className="p-3 rounded-lg bg-danger-50 dark:bg-danger-500/10 text-danger text-sm">
+              <div className="p-3 rounded-lg bg-danger-soft dark:bg-danger-soft text-danger text-sm">
                 {serverError}
               </div>
             )}
 
             <Button
               type="submit"
-              color="primary"
+              variant="primary"
               size="lg"
-              isLoading={isSubmitting}
+              isPending={isSubmitting}
               isDisabled={isUploading}
               className="w-full"
             >
               Create Meal
             </Button>
           </form>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

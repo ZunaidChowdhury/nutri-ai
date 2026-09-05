@@ -1,22 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "@/lib/auth/client";
-import {
-  Navbar as HeroNavbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  NavbarMenuToggle,
-  NavbarMenu,
-  NavbarMenuItem,
-  Button,
-  Link,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Avatar,
-} from "@heroui/react";
+import { Link, Dropdown, Avatar, ProgressBar } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
@@ -38,7 +23,7 @@ const loggedInLinks = [
 ];
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,219 +41,221 @@ export default function Navbar() {
   }, [router]);
 
   return (
-    <HeroNavbar
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-      maxWidth="full"
-      position="sticky"
-      className="border-b border-divider bg-background/80 backdrop-blur-md"
-    >
-      <NavbarBrand>
-        <Link href="/" color="foreground" className="flex items-center gap-2 text-xl font-bold">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-full items-center justify-between px-4 py-2">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground">
           <img src="/NutriAI-logo.png" alt="NutriAI" className="h-7 w-7" />
           NutriAI
         </Link>
-      </NavbarBrand>
 
-      <NavbarContent className="hidden md:flex gap-4" justify="center">
-        {links.map((link) => (
-          <NavbarItem key={link.href}>
+        {/* Desktop nav links */}
+        <div className="hidden md:flex items-center gap-4">
+          {links.map((link) => (
             <Link
+              key={link.href}
               href={link.href}
-              color={pathname === link.href ? "primary" : "foreground"}
-              size="md"
+              className={pathname === link.href ? "text-accent" : "text-foreground"}
             >
               {link.label}
             </Link>
-          </NavbarItem>
-        ))}
-      </NavbarContent>
+          ))}
+        </div>
 
-      <NavbarContent justify="end">
-        <NavbarItem>
+        {/* Right side */}
+        <div className="flex items-center gap-3">
           <ThemeSwitch />
-        </NavbarItem>
 
-        {isLoggedIn ? (
-          <NavbarItem>
-            <Dropdown placement="bottom-end">
-              <DropdownTrigger>
-                <button className="flex items-center gap-1.5 cursor-pointer">
-                  <span className="hidden sm:inline text-sm font-medium text-default-600">
-                    Hi, {firstName}
+          {isPending ? (
+            <div className="flex items-center gap-2" aria-hidden="true">
+              <span className="hidden sm:block h-9 w-24 animate-pulse rounded-lg bg-surface-secondary" />
+              <span className="h-9 w-9 animate-pulse rounded-full bg-surface-secondary" />
+            </div>
+          ) : isLoggedIn ? (
+            <Dropdown>
+              <Dropdown.Trigger className="flex items-center gap-1.5 cursor-pointer bg-transparent border-none p-0">
+                <span className="hidden sm:inline text-sm font-medium text-foreground/70">
+                  Hi, {firstName}
+                </span>
+                {isAdmin && (
+                  <span
+                    className="flex h-4 w-4 items-center justify-center rounded-full bg-success text-background"
+                    title="Admin"
+                  >
+                    <AdminShieldIcon className="h-3 w-3" />
                   </span>
-                  {isAdmin && (
-                    <span
-                      className="flex h-4 w-4 items-center justify-center rounded-full bg-success text-background"
-                      title="Admin"
-                    >
-                      <AdminShieldIcon className="h-3 w-3" />
-                    </span>
-                  )}
-                  <Avatar
-                    size="sm"
-                    name={user?.name || user?.email || ""}
-                    src={user?.image || ""}
-                  />
-                  <HiChevronDown className="text-default-400 text-sm" />
-                </button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="User menu">
-                {[
-                  <DropdownItem
-                    key="email"
-                    className="opacity-100 h-auto py-2"
-                    isDisabled
-                    textValue={user?.email || ""}
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-xs text-default-400">Signed in as</span>
-                      <span className="text-sm font-medium">{user?.email}</span>
-                    </div>
-                  </DropdownItem>,
-                  <DropdownItem
-                    key="dashboard"
-                    onPress={() => router.push("/dashboard")}
-                  >
-                    Dashboard
-                  </DropdownItem>,
-                  <DropdownItem
-                    key="addmeal"
-                    onPress={() => router.push("/items/add")}
-                  >
-                    Add Meal
-                  </DropdownItem>,
-                  <DropdownItem
-                    key="managemeals"
-                    onPress={() => router.push("/items/manage")}
-                  >
-                    Manage Meals
-                  </DropdownItem>,
-                  ...(isAdmin
-                    ? [
-                        <DropdownItem
-                          key="allmeals"
-                          showDivider
-                          onPress={() => router.push("/admin/meals")}
-                        >
-                          All Meals
-                        </DropdownItem>,
-                        <DropdownItem
-                          key="allusers"
-                          onPress={() => router.push("/admin/users")}
-                        >
-                          All Users
-                        </DropdownItem>,
-                      ]
-                    : []),
-                  <DropdownItem
-                    key="signout"
-                    color="danger"
-                    onPress={handleSignOut}
+                )}
+                <Avatar size="sm">
+                  <Avatar.Image src={user?.image || ""} />
+                  <Avatar.Fallback>{user?.name?.[0] || user?.email?.[0] || "?"}</Avatar.Fallback>
+                </Avatar>
+                <HiChevronDown className="text-muted text-sm" />
+              </Dropdown.Trigger>
+              <Dropdown.Popover placement="bottom end">
+                <Dropdown.Menu aria-label="User menu">
+                <Dropdown.Item
+                  id="email"
+                  className="opacity-100 h-auto py-2 cursor-default"
+                  isDisabled
+                  textValue={user?.email || ""}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted">Signed in as</span>
+                    <span className="text-sm font-medium">{user?.email}</span>
+                  </div>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  id="dashboard"
+                  textValue="Dashboard"
+                  onAction={() => router.push("/dashboard")}
+                >
+                  Dashboard
+                </Dropdown.Item>
+                <Dropdown.Item
+                  id="addmeal"
+                  textValue="Add Meal"
+                  onAction={() => router.push("/items/add")}
+                >
+                  Add Meal
+                </Dropdown.Item>
+                <Dropdown.Item
+                  id="managemeals"
+                  textValue="Manage Meals"
+                  onAction={() => router.push("/items/manage")}
+                >
+                  Manage Meals
+                </Dropdown.Item>
+                {isAdmin && (
+                  <>
+                    <Dropdown.Section aria-label="Admin" className="py-1">
+                      <Dropdown.Item
+                        id="allmeals"
+                        textValue="All Meals"
+                        onAction={() => router.push("/admin/meals")}
+                      >
+                        All Meals
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        id="allusers"
+                        textValue="All Users"
+                        onAction={() => router.push("/admin/users")}
+                      >
+                        All Users
+                      </Dropdown.Item>
+                    </Dropdown.Section>
+                  </>
+                )}
+                <Dropdown.Section aria-label="Account" className="py-1">
+                  <Dropdown.Item
+                    id="signout"
+                    className="text-danger"
+                    textValue="Sign Out"
+                    onAction={handleSignOut}
                   >
                     Sign Out
-                  </DropdownItem>,
-                ]}
-              </DropdownMenu>
+                  </Dropdown.Item>
+                </Dropdown.Section>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
             </Dropdown>
-          </NavbarItem>
-        ) : (
-          <NavbarItem className="hidden md:flex gap-2">
-            <Button
-              as={Link}
-              href="/login"
-              variant="flat"
-              size="sm"
-            >
-              Log In
-            </Button>
-            <Button
-              as={Link}
-              href="/register"
-              color="primary"
-              size="sm"
-            >
-              Sign Up
-            </Button>
-          </NavbarItem>
-        )}
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-secondary transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 transition-colors"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
 
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="md:hidden"
-          icon={isMenuOpen ? <HiX size={22} /> : <HiMenu size={22} />}
+          <button
+            className="md:hidden p-1 cursor-pointer"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMenuOpen ? <HiX size={22} /> : <HiMenu size={22} />}
+          </button>
+        </div>
+      </div>
+
+      {isPending && (
+        <ProgressBar
+          isIndeterminate
+          aria-label="Checking authentication"
+          className="w-full"
+          color="accent"
+          size="sm"
         />
-      </NavbarContent>
+      )}
 
-      <NavbarMenu>
-        {links.map((link) => (
-          <NavbarMenuItem key={link.href}>
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t border-border px-4 py-3">
+          {links.map((link) => (
             <Link
+              key={link.href}
               href={link.href}
-              color={pathname === link.href ? "primary" : "foreground"}
-              size="lg"
-              className="w-full"
+              className={`block py-2 text-lg ${pathname === link.href ? "text-accent" : "text-foreground"}`}
               onPress={() => setIsMenuOpen(false)}
             >
               {link.label}
             </Link>
-          </NavbarMenuItem>
-        ))}
-        {!isLoggedIn && (
-          <>
-            <NavbarMenuItem>
-              <Link href="/login" color="foreground" size="lg" className="w-full" onPress={() => setIsMenuOpen(false)}>
+          ))}
+          {!isLoggedIn && (
+            <>
+              <Link
+                href="/login"
+                className="block py-2 text-lg text-foreground"
+                onPress={() => setIsMenuOpen(false)}
+              >
                 Log In
               </Link>
-            </NavbarMenuItem>
-            <NavbarMenuItem>
-              <Link href="/register" color="primary" size="lg" className="w-full" onPress={() => setIsMenuOpen(false)}>
+              <Link
+                href="/register"
+                className="block py-2 text-lg text-accent"
+                onPress={() => setIsMenuOpen(false)}
+              >
                 Sign Up
               </Link>
-            </NavbarMenuItem>
-          </>
-        )}
-        {isLoggedIn && (
-          <>
-            {isAdmin && (
-              <>
-                <NavbarMenuItem>
+            </>
+          )}
+          {isLoggedIn && (
+            <>
+              {isAdmin && (
+                <>
                   <Link
                     href="/admin/meals"
-                    color="foreground"
-                    size="lg"
-                    className="w-full"
+                    className="block py-2 text-lg text-foreground"
                     onPress={() => setIsMenuOpen(false)}
                   >
                     All Meals
                   </Link>
-                </NavbarMenuItem>
-                <NavbarMenuItem>
                   <Link
                     href="/admin/users"
-                    color="foreground"
-                    size="lg"
-                    className="w-full"
+                    className="block py-2 text-lg text-foreground"
                     onPress={() => setIsMenuOpen(false)}
                   >
                     All Users
                   </Link>
-                </NavbarMenuItem>
-              </>
-            )}
-            <NavbarMenuItem>
-              <Link
-                color="danger"
-                size="lg"
-                className="w-full cursor-pointer"
-                onPress={() => { setIsMenuOpen(false); handleSignOut(); }}
+                </>
+              )}
+              <button
+                className="block w-full text-left py-2 text-lg text-danger cursor-pointer"
+                onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
               >
                 Sign Out
-              </Link>
-            </NavbarMenuItem>
-          </>
-        )}
-      </NavbarMenu>
-    </HeroNavbar>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </nav>
   );
 }

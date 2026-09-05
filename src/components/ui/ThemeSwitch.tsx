@@ -21,10 +21,12 @@ export function ThemeSwitch() {
   return (
     <Switch
       isSelected={isDark}
-      onValueChange={(val) => setTheme(val ? "dark" : "light")}
-      size="md"
-      thumbIcon={isDark ? <HiMoon size={14} /> : <HiSun size={14} />}
+      onChange={(val) => setTheme(val ? "dark" : "light")}
       aria-label="Toggle theme"
-    />
+    >
+      <Switch.Control>
+        <Switch.Thumb>{isDark ? <HiMoon size={14} /> : <HiSun size={14} />}</Switch.Thumb>
+      </Switch.Control>
+    </Switch>
   );
 }

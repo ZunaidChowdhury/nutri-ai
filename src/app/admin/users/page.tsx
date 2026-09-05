@@ -2,31 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@heroui/button';
-import { Avatar } from '@heroui/avatar';
-import { Chip } from '@heroui/chip';
-import { Pagination } from '@heroui/pagination';
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@heroui/dropdown';
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@heroui/modal';
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/table';
+import { Button, Chip, Table, Modal, Dropdown, Avatar, useOverlayState } from '@heroui/react';
 import { useSession } from '@/lib/auth/client';
 import { getAdminUsers } from '@/lib/api/admin';
 import { updateUserRole, deleteUser } from '@/lib/actions/admin';
@@ -34,6 +10,7 @@ import { getAuthToken } from '@/lib/core/server';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { Spinner } from '@/components/feedback/Spinner';
+import { ResultsPagination } from '@/components/ui/ResultsPagination';
 import { FiUser, FiShield } from 'react-icons/fi';
 import type { User } from '@/lib/types/user';
 
@@ -48,13 +25,12 @@ function RoleSelector({
 }) {
   return (
     <Dropdown>
-      <DropdownTrigger>
-        <Button size="sm" variant="flat" isDisabled={disabled}>
+      <Dropdown.Trigger>
+        <Button size="sm" variant="secondary" isDisabled={disabled}>
           <Chip
             size="sm"
-            variant="flat"
-            color={user.role === 'admin' ? 'success' : 'primary'}
-            classNames={{ content: 'font-medium' }}
+            variant="soft"
+            color={user.role === 'admin' ? 'success' : 'accent'}
           >
             {user.role === 'admin' ? (
               <FiShield className="mr-1 inline" />
@@ -64,17 +40,24 @@ function RoleSelector({
             {user.role}
           </Chip>
         </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Change role"
-        onAction={(key) => {
-          if (key === 'user' || key === 'admin') onSelect(key);
-        }}
-      >
-        <DropdownItem key="user">User</DropdownItem>
-        <DropdownItem key="admin">Admin</DropdownItem>
-      </DropdownMenu>
+      </Dropdown.Trigger>
+      <Dropdown.Popover>
+        <Dropdown.Menu aria-label="Change role">
+          <Dropdown.Item id="user" textValue="User" onAction={() => onSelect('user')}>User</Dropdown.Item>
+          <Dropdown.Item id="admin" textValue="Admin" onAction={() => onSelect('admin')}>Admin</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
+  );
+}
+
+function UserAvatar({ name, src, size }: { name: string; src?: string; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  return (
+    <Avatar size={size}>
+      {src && <Avatar.Image src={src} />}
+      <Avatar.Fallback>{initials}</Avatar.Fallback>
+    </Avatar>
   );
 }
 
@@ -93,11 +76,10 @@ export default function AdminUsersPage() {
     queryFn: async () => {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
-      return getAdminUsers({ page, limit: 50 }, token);
+      return getAdminUsers({ page, limit: 12 }, token);
     },
   });
 
-  const totalPages = data?.totalPages ?? 1;
   const users = data?.data ?? [];
 
   const roleMutation = useMutation({
@@ -127,6 +109,11 @@ export default function AdminUsersPage() {
     onError: (err: Error) => setActionError(err.message),
   });
 
+  const deleteModalState = useOverlayState({
+    isOpen: !!deleteTarget,
+    onOpenChange: () => setDeleteTarget(null),
+  });
+
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
@@ -146,65 +133,68 @@ export default function AdminUsersPage() {
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl md:text-3xl font-bold">All Users</h1>
-        <p className="text-default-500">
+        <p className="text-muted">
           {data?.total ?? 0} user{data?.total !== 1 ? 's' : ''} registered
         </p>
       </div>
 
       {actionError && (
-        <div className="rounded-lg bg-danger-50 px-4 py-2 text-sm text-danger-600 dark:bg-danger-500/10 dark:text-danger-400">
+        <div className="rounded-lg bg-danger/10 px-4 py-2 text-sm text-danger dark:bg-danger/10 dark:text-danger">
           {actionError}
         </div>
       )}
 
       <div className="hidden md:block">
-        <Table aria-label="All users admin table">
-          <TableHeader>
-            <TableColumn>USER</TableColumn>
-            <TableColumn>EMAIL</TableColumn>
-            <TableColumn>ROLE</TableColumn>
-            <TableColumn>JOINED</TableColumn>
-            <TableColumn>ACTIONS</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent="No users found.">
-            {users.map((user) => {
-              const isSelf = user._id === ownId;
-              return (
-                <TableRow key={user._id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar size="sm" name={user.name} src={user.image || ''} />
-                      <span className="font-medium">{user.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <RoleSelector
-                      user={user}
-                      disabled={isSelf}
-                      onSelect={(role) =>
-                        roleMutation.mutate({ userId: user._id, role })
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-default-500">
-                    {formatDate(user.createdAt)}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      color="danger"
-                      isDisabled={isSelf || deleteMutation.isPending}
-                      onPress={() => setDeleteTarget(user)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="All users admin table" className="min-w-[600px]">
+              <Table.Header>
+                <Table.Column isRowHeader>USER</Table.Column>
+                <Table.Column>EMAIL</Table.Column>
+                <Table.Column>ROLE</Table.Column>
+                <Table.Column>JOINED</Table.Column>
+                <Table.Column>ACTIONS</Table.Column>
+              </Table.Header>
+              <Table.Body>
+                {users.map((user) => {
+                  const isSelf = user._id === ownId;
+                  return (
+                    <Table.Row key={user._id}>
+                      <Table.Cell>
+                        <div className="flex items-center gap-2">
+                          <UserAvatar name={user.name} src={user.image} size="sm" />
+                          <span className="font-medium">{user.name}</span>
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>{user.email}</Table.Cell>
+                      <Table.Cell>
+                        <RoleSelector
+                          user={user}
+                          disabled={isSelf}
+                          onSelect={(role) =>
+                            roleMutation.mutate({ userId: user._id, role })
+                          }
+                        />
+                      </Table.Cell>
+                      <Table.Cell className="text-muted">
+                        {formatDate(user.createdAt)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Button
+                          size="sm"
+                          variant="danger-soft"
+                          isDisabled={isSelf || deleteMutation.isPending}
+                          onPress={() => setDeleteTarget(user)}
+                        >
+                          Delete
+                        </Button>
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
         </Table>
       </div>
 
@@ -212,12 +202,12 @@ export default function AdminUsersPage() {
         {users.map((user) => {
           const isSelf = user._id === ownId;
           return (
-            <div key={user._id} className="rounded-xl border border-default-200 p-4 dark:border-default-100">
+            <div key={user._id} className="rounded-xl border border-border p-4 dark:border-default">
               <div className="flex items-center gap-3">
-                <Avatar name={user.name} src={user.image || ''} />
+                <UserAvatar name={user.name} src={user.image} />
                 <div className="flex flex-col min-w-0">
                   <span className="font-semibold">{user.name}</span>
-                  <span className="text-xs text-default-500 truncate">{user.email}</span>
+                  <span className="text-xs text-muted truncate">{user.email}</span>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
@@ -228,8 +218,7 @@ export default function AdminUsersPage() {
                 />
                 <Button
                   size="sm"
-                  variant="flat"
-                  color="danger"
+                  variant="danger-soft"
                   isDisabled={isSelf || deleteMutation.isPending}
                   onPress={() => setDeleteTarget(user)}
                 >
@@ -241,48 +230,48 @@ export default function AdminUsersPage() {
         })}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-2">
-          <Pagination
-            total={totalPages}
-            page={page}
-            onChange={setPage}
-            color="primary"
-            showControls
-          />
-        </div>
+      {data && data.total > 0 && (
+        <ResultsPagination
+          page={page}
+          totalPages={data.totalPages}
+          totalItems={data.total}
+          pageSize={12}
+          noun={data.total !== 1 ? 'users' : 'user'}
+          onPageChange={setPage}
+        />
       )}
 
-      <Modal
-        isOpen={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-        placement="center"
-      >
-        <ModalContent>
-          <ModalHeader>Delete User</ModalHeader>
-          <ModalBody>
-            <p>
-              Are you sure you want to delete{' '}
-              <strong>{deleteTarget?.name}</strong> ({deleteTarget?.email})? This
-              will permanently remove the account, their meals, meal plans, and
-              nutrition reports.
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onPress={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              color="danger"
-              isLoading={deleteMutation.isPending}
-              onPress={() => {
-                if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
-              }}
-            >
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+      <Modal state={deleteModalState}>
+        <Modal.Backdrop />
+        <Modal.Container size="md">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>Delete User</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                Are you sure you want to delete{' '}
+                <strong>{deleteTarget?.name}</strong> ({deleteTarget?.email})? This
+                will permanently remove the account, their meals, meal plans, and
+                nutrition reports.
+              </p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                isPending={deleteMutation.isPending}
+                onPress={() => {
+                  if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
+                }}
+              >
+                Delete
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
       </Modal>
     </div>
   );

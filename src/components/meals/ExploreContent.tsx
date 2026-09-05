@@ -2,14 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Input } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
-import { Button } from '@heroui/button';
-import { Pagination } from '@heroui/pagination';
+import {
+  TextField,
+  Input,
+  Label,
+  Select,
+  ListBox,
+  Button,
+} from '@heroui/react';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllMeals } from '@/lib/api/meal';
 import type { MealsResponse } from '@/lib/types/meal';
+import { ResultsPagination } from '@/components/ui/ResultsPagination';
 import { MealGrid } from './MealGrid';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
@@ -89,10 +94,9 @@ export function ExploreContent({
     [pathname]
   );
 
-  // Sync Redux state (and the uncontrolled input mirrors) from the URL,
-  // but ignore URL updates that we wrote ourselves.
   useEffect(() => {
-    const currentUrl = `${pathname}${searchParams.toString()}`;
+    const qs = searchParams.toString();
+    const currentUrl = qs ? `${pathname}?${qs}` : pathname;
     if (lastWrittenUrl.current !== null && lastWrittenUrl.current === currentUrl) {
       lastWrittenUrl.current = null;
       return;
@@ -118,20 +122,22 @@ export function ExploreContent({
       setOrder((searchParams.get('order') as 'asc' | 'desc') || 'desc')
     );
     dispatch(setPage(Number(searchParams.get('page')) || 1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, pathname, dispatch]);
 
-  // Write the filter state back to the URL. Skipped on first render so the
-  // initial sync from the URL wins.
   useEffect(() => {
     if (skipFirstUrlWrite.current) {
       skipFirstUrlWrite.current = false;
       return;
     }
     const url = buildUrl(filters);
+    const qs = searchParams.toString();
+    const currentUrl = qs ? `${pathname}?${qs}` : pathname;
+    if (url === currentUrl) {
+      return;
+    }
     lastWrittenUrl.current = url;
     router.replace(url, { scroll: false });
-  }, [filters, buildUrl, router]);
+  }, [filters, buildUrl, router, searchParams, pathname]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -170,12 +176,14 @@ export function ExploreContent({
     [filters]
   );
 
+  const [ssrParams] = useState(() => queryParams);
+
   const { data, isLoading, isPlaceholderData, isError, error } = useQuery({
     queryKey: ['meals', queryParams],
     queryFn: () => getAllMeals(queryParams),
     staleTime: 30_000,
     placeholderData: (prev) => prev,
-    initialData,
+    initialData: queryParams === ssrParams ? initialData : undefined,
   });
 
   const handleReset = useCallback(() => {
@@ -191,66 +199,81 @@ export function ExploreContent({
     !isLoading &&
     !isPlaceholderData &&
     (!data?.data || data.data.length === 0);
-  const startItem = totalItems === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1;
-  const endItem = totalItems === 0 ? 0 : Math.min(filters.page * PAGE_SIZE, totalItems);
+  const noun = `result${totalItems !== 1 ? 's' : ''}`;
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">Explore Meals</h1>
-        <p className="text-default-500">
+        <p className="text-muted">
           Discover nutritious meals tailored to your preferences
         </p>
       </div>
 
       <div className="flex flex-col gap-4">
-        <Input
-          label="Search meals"
-          placeholder="Search by name..."
-          value={searchInput}
-          onValueChange={handleSearchChange}
-          className="w-full md:max-w-md"
-          isClearable
-        />
+        <TextField className="w-full md:max-w-md" fullWidth>
+          <Input
+            type="text"
+            placeholder="Search by name..."
+            aria-label="Search meals"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+        </TextField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <Select
-            label="Cuisine"
+            className="w-full"
             placeholder="All cuisines"
-            selectedKeys={filters.cuisineTag ? [filters.cuisineTag] : []}
-            onSelectionChange={(keys) => {
-              const val = Array.from(keys)[0] as string;
-              dispatch(setCuisineTag(val || ''));
+            value={filters.cuisineTag || null}
+            onChange={(key) => {
+              dispatch(setCuisineTag((key as string) || ''));
             }}
           >
-            {CUISINE_TAGS.map((tag) => (
-              <SelectItem key={tag}>{tag}</SelectItem>
-            ))}
+            <Label>Cuisine</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {CUISINE_TAGS.map((tag) => (
+                  <ListBox.Item key={tag} id={tag} textValue={tag}>
+                    {tag}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
 
-          <Input
-            label="Min calories"
-            type="number"
-            placeholder="0"
-            value={minCalInput}
-            onValueChange={setMinCalInput}
-            onKeyDown={handleCalKeyDown}
-          />
+          <TextField className="w-full" fullWidth>
+            <Label>Min calories</Label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={minCalInput}
+              onChange={(e) => setMinCalInput(e.target.value)}
+              onKeyDown={handleCalKeyDown}
+            />
+          </TextField>
 
-          <Input
-            label="Max calories"
-            type="number"
-            placeholder="1000"
-            value={maxCalInput}
-            onValueChange={setMaxCalInput}
-            onKeyDown={handleCalKeyDown}
-          />
+          <TextField className="w-full" fullWidth>
+            <Label>Max calories</Label>
+            <Input
+              type="number"
+              placeholder="1000"
+              value={maxCalInput}
+              onChange={(e) => setMaxCalInput(e.target.value)}
+              onKeyDown={handleCalKeyDown}
+            />
+          </TextField>
 
           <Select
-            label="Sort by"
-            selectedKeys={[`${filters.sortBy}-${filters.order}`]}
-            onSelectionChange={(keys) => {
-              const val = Array.from(keys)[0] as string;
+            className="w-full"
+            placeholder="Sort by"
+            value={`${filters.sortBy}-${filters.order}`}
+            onChange={(key) => {
+              const val = (key as string) || '';
               const [sortBy, order] = val.split('-') as [
                 'calories' | 'rating' | 'createdAt',
                 'asc' | 'desc',
@@ -259,17 +282,33 @@ export function ExploreContent({
               dispatch(setOrder(order));
             }}
           >
-            <SelectItem key="createdAt-desc">Newest</SelectItem>
-            <SelectItem key="calories-asc">Calories (low)</SelectItem>
-            <SelectItem key="calories-desc">Calories (high)</SelectItem>
-            <SelectItem key="rating-desc">Highest rated</SelectItem>
+            <Label>Sort by</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="createdAt-desc" textValue="Newest">
+                  Newest
+                </ListBox.Item>
+                <ListBox.Item id="calories-asc" textValue="Calories (low)">
+                  Calories (low)
+                </ListBox.Item>
+                <ListBox.Item id="calories-desc" textValue="Calories (high)">
+                  Calories (high)
+                </ListBox.Item>
+                <ListBox.Item id="rating-desc" textValue="Highest rated">
+                  Highest rated
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
           </Select>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            variant="flat"
-            color="primary"
+            variant="primary"
             size="sm"
             onPress={applyCalorieFilter}
           >
@@ -282,7 +321,7 @@ export function ExploreContent({
             filters.sortBy !== 'createdAt' ||
             filters.order !== 'desc') && (
             <Button
-              variant="flat"
+              variant="secondary"
               size="sm"
               onPress={handleReset}
             >
@@ -299,7 +338,7 @@ export function ExploreContent({
           title="No meals found"
           description="Try adjusting your search or filters to find what you're looking for."
           action={
-            <Button variant="flat" color="primary" onPress={handleReset}>
+            <Button variant="primary" onPress={handleReset}>
               Clear filters
             </Button>
           }
@@ -308,30 +347,15 @@ export function ExploreContent({
         <MealGrid meals={data?.data || []} isLoading={isLoading} />
       )}
 
-      {!isEmpty && totalPages > 1 && (
-        <div className="mt-4 flex w-full flex-col items-center justify-center gap-3">
-          <p className="text-sm text-default-500">
-            Showing {startItem}-{endItem} of {totalItems} result
-            {totalItems !== 1 ? 's' : ''}
-          </p>
-          <Pagination
-            total={totalPages}
-            page={filters.page}
-            onChange={(p) => dispatch(setPage(p))}
-            color="primary"
-            variant="light"
-            showControls
-            siblings={1}
-            boundaries={1}
-          />
-        </div>
-      )}
-
-      {!isEmpty && totalPages === 1 && (
-        <p className="mt-4 text-center text-sm text-default-500">
-          Showing {startItem}-{endItem} of {totalItems} result
-          {totalItems !== 1 ? 's' : ''}
-        </p>
+      {!isEmpty && totalPages > 0 && (
+        <ResultsPagination
+          page={filters.page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={PAGE_SIZE}
+          noun={noun}
+          onPageChange={(p) => dispatch(setPage(p))}
+        />
       )}
     </div>
   );

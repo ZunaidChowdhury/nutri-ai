@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/lib/auth/client";
-import { Button, Link } from "@heroui/react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
+import { Link } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SLIDES = [
@@ -47,8 +48,8 @@ const SLIDES = [
 
 export default function HeroSection() {
   const { data: session } = useSession();
-  const isLoggedIn = !!session?.user;
   const [current, setCurrent] = useState(0);
+  const isLoggedIn = useHydrated() && !!session?.user;
 
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % SLIDES.length);
@@ -104,24 +105,18 @@ export default function HeroSection() {
             </p>
 
             <div className="flex gap-4">
-              <Button
-                as={Link}
+              <Link
                 href={isLoggedIn ? "/meals" : "/register"}
-                color="primary"
-                size="lg"
-                className="bg-white text-[#1a3a2a] hover:bg-white/90 font-semibold"
+                className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-lg font-semibold text-[#1a3a2a] hover:bg-white/90"
               >
                 {isLoggedIn ? "Explore Meals" : "Get Started Free"}
-              </Button>
-              <Button
-                as={Link}
+              </Link>
+              <Link
                 href="/meals"
-                variant="bordered"
-                size="lg"
-                className="border-white/40 text-white hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-lg border border-white/40 px-6 py-3 text-lg text-white hover:bg-white/10"
               >
                 Browse Meals
-              </Button>
+              </Link>
             </div>
           </motion.div>
         </AnimatePresence>

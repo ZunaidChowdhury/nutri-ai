@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { HiStar } from "react-icons/hi";
 
 const testimonials = [
@@ -29,7 +29,7 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="bg-default-50 px-4 py-16 md:px-8 lg:px-16">
+    <section className="bg-surface-secondary px-4 py-16 md:px-8 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <h2 className="mb-2 text-center text-3xl font-bold">
           What Our Users Say
@@ -40,8 +40,8 @@ export default function TestimonialsSection() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {testimonials.map((t) => (
-            <Card key={t.name} className="border border-default-200">
-              <CardBody className="gap-4 p-6">
+            <Card key={t.name} className="border border-border">
+              <Card.Content className="gap-4 p-6">
                 <div className="flex gap-1">
                   {Array.from({ length: t.rating }).map((_, i) => (
                     <HiStar key={i} className="size-4 text-warning" />
@@ -52,7 +52,7 @@ export default function TestimonialsSection() {
                   <p className="font-semibold">{t.name}</p>
                   <p className="text-sm text-foreground/50">{t.role}</p>
                 </div>
-              </CardBody>
+              </Card.Content>
             </Card>
           ))}
         </div>

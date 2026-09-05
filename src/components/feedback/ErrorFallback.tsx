@@ -1,7 +1,6 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/card';
-import { Button } from '@heroui/button';
+import { Card, Button } from '@heroui/react';
 import Unauthorized from './Unauthorized';
 import Forbidden from './Forbidden';
 
@@ -28,7 +27,7 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <Card className="w-full max-w-md border border-danger-200">
-        <CardBody className="flex flex-col items-center gap-4 py-12 px-8">
+        <Card.Content className="flex flex-col items-center gap-4 py-12 px-8">
           <div className="w-12 h-12 rounded-full bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,15 +47,15 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
             </svg>
           </div>
           <h3 className="text-lg font-semibold">Something went wrong</h3>
-          <p className="text-sm text-default-500 text-center max-w-xs">
+          <p className="text-sm text-muted text-center max-w-xs">
             {error?.message || 'An unexpected error occurred. Please try again.'}
           </p>
           {reset && (
-            <Button color="primary" variant="flat" onPress={reset}>
+            <Button variant="primary" onPress={reset}>
               Try again
             </Button>
           )}
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

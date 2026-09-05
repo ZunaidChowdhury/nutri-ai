@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { HiSparkles, HiChartBar, HiTag } from "react-icons/hi";
 
 const agents = [
@@ -26,7 +26,7 @@ const agents = [
 
 export default function AgentSpotlightSection() {
   return (
-    <section className="bg-default-50 px-4 py-16 md:px-8 lg:px-16">
+    <section className="bg-surface-secondary px-4 py-16 md:px-8 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <h2 className="mb-2 text-center text-3xl font-bold">
           AI-Powered Agents
@@ -37,16 +37,16 @@ export default function AgentSpotlightSection() {
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {agents.map((agent) => (
-            <Card key={agent.title} className="border border-default-200">
-              <CardHeader className="flex-col items-center gap-3 pb-0 pt-8">
-                <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <agent.icon className="size-7 text-primary" />
+            <Card key={agent.title} className="border border-border">
+              <Card.Header className="flex-col items-center gap-3 pb-0 pt-8">
+                <div className="flex size-14 items-center justify-center rounded-full bg-accent-soft">
+                  <agent.icon className="size-7 text-accent" />
                 </div>
                 <h3 className="text-xl font-semibold">{agent.title}</h3>
-              </CardHeader>
-              <CardBody className="px-6 pb-8 pt-4 text-center text-foreground/60">
+              </Card.Header>
+              <Card.Content className="px-6 pb-8 pt-4 text-center text-foreground/60">
                 {agent.description}
-              </CardBody>
+              </Card.Content>
             </Card>
           ))}
         </div>

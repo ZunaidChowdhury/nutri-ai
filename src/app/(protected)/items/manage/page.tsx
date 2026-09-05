@@ -1,27 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@heroui/button';
-import { Chip } from '@heroui/chip';
-import { Image } from '@heroui/image';
-import { Pagination } from '@heroui/pagination';
 import {
+  Button,
+  Chip,
   Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@heroui/modal';
-import {
   Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/table';
+  useOverlayState,
+} from '@heroui/react';
 import { useSession } from '@/lib/auth/client';
 import { getAllMeals } from '@/lib/api/meal';
 import { deleteMeal } from '@/lib/actions/meal';
@@ -30,6 +18,8 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { Spinner } from '@/components/feedback/Spinner';
 import { MealCard } from '@/components/meals/MealCard';
+import { MealListFilters } from '@/components/meals/MealListFilters';
+import { ResultsPagination } from '@/components/ui/ResultsPagination';
 import type { Meal } from '@/lib/types/meal';
 
 export default function ManageMealsPage() {
@@ -37,14 +27,28 @@ export default function ManageMealsPage() {
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Meal | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [cuisineTag, setCuisineTag] = useState('');
+
+  const deleteModal = useOverlayState({
+    isOpen: !!deleteTarget,
+    onOpenChange: () => setDeleteTarget(null),
+  });
 
   const userId = session?.user?.id;
   const user = session?.user as { id: string; role?: 'user' | 'admin' } | undefined;
   const userRole = user?.role;
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['meals', 'manage', { page, userId }],
-    queryFn: () => getAllMeals({ limit: 50, page, ownerId: userId }),
+  const { data, isPending, isError, error } = useQuery({
+    queryKey: ['meals', 'manage', { page, userId, search, cuisineTag }],
+    queryFn: () =>
+      getAllMeals({
+        limit: 12,
+        page,
+        ownerId: userId,
+        search: search || undefined,
+        cuisineTag: cuisineTag || undefined,
+      }),
     enabled: !!userId,
   });
 
@@ -67,163 +71,197 @@ export default function ManageMealsPage() {
   const canDelete = (meal: Meal) =>
     userRole === 'admin' || meal.ownerId === userId;
 
-  if (isLoading) return <Spinner label="Loading meals" />;
-
-  if (isError) return <ErrorFallback error={error as Error} />;
-
-  if (meals.length === 0) {
-    return (
-      <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Manage Meals</h1>
-        <EmptyState
-          title="No meals yet"
-          description="You haven't added any meals yet. Create your first meal!"
-          action={
-            <Link href="/items/add">
-              <Button color="primary" variant="flat">
-                Add Meal
-              </Button>
-            </Link>
-          }
-        />
-      </div>
-    );
-  }
+  const hasActiveFilters = !!search || !!cuisineTag;
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl md:text-3xl font-bold">Manage Meals</h1>
-          <p className="text-default-500">
-            {meals.length} meal{meals.length !== 1 ? 's' : ''}
-          </p>
+          {!isPending && !isError && (
+            <p className="text-muted">
+              {data?.total ?? 0} meal{data?.total !== 1 ? 's' : ''}
+            </p>
+          )}
         </div>
         <Link href="/items/add">
-          <Button color="primary" variant="flat">
+          <Button variant="primary">
             Add Meal
           </Button>
         </Link>
       </div>
 
-      <div className="hidden md:block">
-        <Table aria-label="Manage meals table">
-          <TableHeader>
-            <TableColumn>IMAGE</TableColumn>
-            <TableColumn>TITLE</TableColumn>
-            <TableColumn>CUISINE</TableColumn>
-            <TableColumn>CALORIES</TableColumn>
-            <TableColumn>RATING</TableColumn>
-            <TableColumn>ACTIONS</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent="No meals found.">
-            {meals.map((meal) => (
-              <TableRow key={meal._id}>
-                <TableCell>
-                  <Image
-                    src={meal.imageUrl || '/placeholder-meal.svg'}
-                    alt={meal.title}
-                    className="w-12 h-12 object-cover rounded"
-                    radius="sm"
-                    fallbackSrc="/placeholder-meal.svg"
-                  />
-                </TableCell>
-                <TableCell className="font-medium">{meal.title}</TableCell>
-                <TableCell>
-                  <Chip size="sm" variant="flat">
-                    {meal.cuisineTag}
-                  </Chip>
-                </TableCell>
-                <TableCell>{meal.calories}</TableCell>
-                <TableCell>{meal.rating.toFixed(1)}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Link href={`/meals/${meal._id}`}>
-                      <Button
-                        size="sm"
-                        variant="flat"
-                      >
-                        View
-                      </Button>
-                    </Link>
-                    {canDelete(meal) && (
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        color="danger"
-                        onPress={() => setDeleteTarget(meal)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <MealListFilters
+        searchOnEnter
+        search={search}
+        cuisineTag={cuisineTag}
+        onSearchChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        onCuisineTagChange={(value) => {
+          setCuisineTag(value);
+          setPage(1);
+        }}
+      />
 
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {meals.map((meal) => (
-          <div key={meal._id} className="relative">
-            <MealCard meal={meal} />
-            {canDelete(meal) && (
+      {isPending ? (
+        <Spinner label="Loading meals" />
+      ) : isError ? (
+        <ErrorFallback error={error as Error} />
+      ) : meals.length === 0 ? (
+        hasActiveFilters ? (
+          <EmptyState
+            title="Nothing matched"
+            description="No meals match your search or cuisine filter."
+            action={
               <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                className="absolute top-2 right-2 z-10"
-                onPress={() => setDeleteTarget(meal)}
+                variant="secondary"
+                onPress={() => {
+                  setSearch('');
+                  setCuisineTag('');
+                  setPage(1);
+                }}
+              >
+                Clear filters
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            title="No meals yet"
+            description="You haven't added any meals yet. Create your first meal!"
+            action={
+              <Link href="/items/add">
+                <Button variant="primary">
+                  Add Meal
+                </Button>
+              </Link>
+            }
+          />
+        )
+      ) : (
+        <>
+          <div className="hidden md:block">
+            <Table className="rounded-xl border border-border">
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Manage meals table" className="min-w-[600px]">
+                  <Table.Header>
+                    <Table.Column>IMAGE</Table.Column>
+                    <Table.Column isRowHeader>TITLE</Table.Column>
+                    <Table.Column>CUISINE</Table.Column>
+                    <Table.Column>CALORIES</Table.Column>
+                    <Table.Column>RATING</Table.Column>
+                    <Table.Column>ACTIONS</Table.Column>
+                  </Table.Header>
+                  <Table.Body>
+                    {meals.map((meal) => (
+                      <Table.Row key={meal._id} id={meal._id}>
+                        <Table.Cell>
+                          <img
+                            src={meal.imageUrl || '/placeholder-meal.svg'}
+                            alt={meal.title}
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder-meal.svg';
+                            }}
+                          />
+                        </Table.Cell>
+                        <Table.Cell className="font-medium">{meal.title}</Table.Cell>
+                        <Table.Cell>
+                          <Chip size="sm" variant="soft">
+                            {meal.cuisineTag}
+                          </Chip>
+                        </Table.Cell>
+                        <Table.Cell>{meal.calories}</Table.Cell>
+                        <Table.Cell>{meal.rating.toFixed(1)}</Table.Cell>
+                        <Table.Cell>
+                          <div className="flex gap-2">
+                            <Link href={`/meals/${meal._id}`}>
+                              <Button size="sm" variant="secondary">
+                                View
+                              </Button>
+                            </Link>
+                            {canDelete(meal) && (
+                              <Button
+                                size="sm"
+                                variant="danger-soft"
+                                onPress={() => setDeleteTarget(meal)}
+                              >
+                                Delete
+                              </Button>
+                            )}
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+            </Table>
+          </div>
+
+          <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {meals.map((meal) => (
+              <div key={meal._id} className="relative">
+                <MealCard meal={meal} />
+                {canDelete(meal) && (
+                  <Button
+                    size="sm"
+                    variant="danger-soft"
+                    className="absolute top-2 right-2 z-10"
+                    onPress={() => setDeleteTarget(meal)}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {data && data.total > 0 && (
+            <ResultsPagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={data.total}
+              pageSize={12}
+              noun={data.total !== 1 ? 'meals' : 'meal'}
+              onPageChange={setPage}
+            />
+          )}
+        </>
+      )}
+
+      <Modal state={deleteModal}>
+        <Modal.Backdrop />
+        <Modal.Container placement="center" size="md">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>Delete Meal</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                Are you sure you want to delete{' '}
+                <strong>{deleteTarget?.title}</strong>? This action cannot be
+                undone.
+              </p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                isPending={deleteMutation.isPending}
+                onPress={() => {
+                  if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
+                }}
               >
                 Delete
               </Button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-2">
-          <Pagination
-            total={totalPages}
-            page={page}
-            onChange={setPage}
-            color="primary"
-            showControls
-          />
-        </div>
-      )}
-
-      <Modal
-        isOpen={!!deleteTarget}
-        onOpenChange={() => setDeleteTarget(null)}
-        placement="center"
-      >
-        <ModalContent>
-          <ModalHeader>Delete Meal</ModalHeader>
-          <ModalBody>
-            <p>
-              Are you sure you want to delete{' '}
-              <strong>{deleteTarget?.title}</strong>? This action cannot be
-              undone.
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onPress={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              color="danger"
-              isLoading={deleteMutation.isPending}
-              onPress={() => {
-                if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
-              }}
-            >
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
       </Modal>
     </div>
   );

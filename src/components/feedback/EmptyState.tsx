@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@heroui/card';
+import { Card } from '@heroui/react';
 
 interface EmptyStateProps {
   title: string;
@@ -9,8 +9,8 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description, image, action }: EmptyStateProps) {
   return (
-    <Card className="w-full max-w-md mx-auto border border-default-200 dark:border-default-100">
-      <CardBody className="flex flex-col items-center gap-4 py-12 px-8">
+    <Card className="w-full max-w-md mx-auto border border-border">
+      <Card.Content className="flex flex-col items-center gap-4 py-12 px-8">
         {image && (
           <img
             src={image}
@@ -19,11 +19,11 @@ export function EmptyState({ title, description, image, action }: EmptyStateProp
           />
         )}
         <h3 className="text-lg font-semibold text-center">{title}</h3>
-        <p className="text-sm text-default-500 text-center max-w-xs">
+        <p className="text-sm text-muted text-center max-w-xs">
           {description}
         </p>
         {action}
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

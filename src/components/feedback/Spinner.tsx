@@ -1,4 +1,4 @@
-import { Spinner as HeroSpinner } from '@heroui/spinner';
+import { Spinner as HeroSpinner } from '@heroui/react';
 
 interface SpinnerProps {
   label?: string;
@@ -7,11 +7,8 @@ interface SpinnerProps {
 export function Spinner({ label = 'Loading' }: SpinnerProps) {
   return (
     <div className="flex items-center justify-center min-h-[200px]">
-      <HeroSpinner
-        label={label}
-        color="primary"
-        labelColor="primary"
-      />
+      <HeroSpinner className="text-accent" size="md" />
+      {label && <span className="ml-2 text-sm text-muted">{label}</span>}
     </div>
   );
 }

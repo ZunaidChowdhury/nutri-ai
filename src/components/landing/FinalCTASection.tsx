@@ -1,11 +1,12 @@
 "use client";
 
-import { Button, Link } from "@heroui/react";
+import { Link } from "@heroui/react";
 import { useSession } from "@/lib/auth/client";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 
 export default function FinalCTASection() {
   const { data: session } = useSession();
-  const isLoggedIn = !!session?.user;
+  const isLoggedIn = useHydrated() && !!session?.user;
 
   return (
     <section className="relative overflow-hidden px-4 py-20 md:px-8 lg:px-16">
@@ -20,16 +21,12 @@ export default function FinalCTASection() {
           Join NutriAI today and let AI power your journey to better eating
           habits.
         </p>
-        <Button
-          as={Link}
+        <Link
           href={isLoggedIn ? "/meal-plan" : "/register"}
-          color="default"
-          size="lg"
-          variant="flat"
-          className="bg-white text-primary font-semibold hover:bg-white/90"
+          className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-lg font-semibold text-accent hover:bg-white/90"
         >
           {isLoggedIn ? "Create a Meal Plan" : "Get Started Free"}
-        </Button>
+        </Link>
       </div>
     </section>
   );

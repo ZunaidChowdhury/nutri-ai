@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Chip } from '@heroui/chip';
+import { Button, Card, Chip } from '@heroui/react';
 import { getUserMeals } from '@/lib/api/dashboard';
 import { getAuthToken } from '@/lib/core/server';
 import type { Meal } from '@/lib/types/meal';
-import { Button } from '@heroui/button';
 import { CaloriesLineChart } from './CaloriesLineChart';
 import { MacroBreakdownChart } from './MacroBreakdownChart';
 import { NutritionReportCard } from './NutritionReportCard';
@@ -83,8 +81,8 @@ export function DashboardContent() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border border-default-200 dark:border-default-100">
-            <CardBody className="h-24" />
+          <Card key={i} className="border border-border dark:border-border">
+            <Card.Content className="h-24" />
           </Card>
         ))}
       </div>
@@ -94,44 +92,44 @@ export function DashboardContent() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border border-default-200 dark:border-default-100">
-          <CardBody className="p-5">
-            <p className="text-sm text-default-500">Total Meals Logged</p>
+        <Card className="border border-border dark:border-border">
+          <Card.Content className="p-5">
+            <p className="text-sm text-muted">Total Meals Logged</p>
             <p className="text-2xl font-bold mt-1">{meals.length}</p>
-          </CardBody>
+          </Card.Content>
         </Card>
-        <Card className="border border-default-200 dark:border-default-100">
-          <CardBody className="p-5">
-            <p className="text-sm text-default-500">Total Calories</p>
+        <Card className="border border-border dark:border-border">
+          <Card.Content className="p-5">
+            <p className="text-sm text-muted">Total Calories</p>
             <p className="text-2xl font-bold mt-1">{totalCalories.toLocaleString()}</p>
-          </CardBody>
+          </Card.Content>
         </Card>
-        <Card className="border border-default-200 dark:border-default-100">
-          <CardBody className="p-5">
-            <p className="text-sm text-default-500">Avg Calories/Meal</p>
+        <Card className="border border-border dark:border-border">
+          <Card.Content className="p-5">
+            <p className="text-sm text-muted">Avg Calories/Meal</p>
             <p className="text-2xl font-bold mt-1">
               {meals.length ? Math.round(totalCalories / meals.length) : 0}
             </p>
-          </CardBody>
+          </Card.Content>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="border border-default-200 dark:border-default-100">
-          <CardHeader className="pb-0 px-5 pt-5">
+        <Card className="border border-border dark:border-border">
+          <Card.Header className="pb-0 px-5 pt-5">
             <h2 className="text-lg font-semibold">Calories Over Time</h2>
-          </CardHeader>
-          <CardBody className="p-5">
+          </Card.Header>
+          <Card.Content className="p-5">
             <CaloriesLineChart meals={meals} />
-          </CardBody>
+          </Card.Content>
         </Card>
-        <Card className="border border-default-200 dark:border-default-100">
-          <CardHeader className="pb-0 px-5 pt-5">
+        <Card className="border border-border dark:border-border">
+          <Card.Header className="pb-0 px-5 pt-5">
             <h2 className="text-lg font-semibold">Macro Breakdown</h2>
-          </CardHeader>
-          <CardBody className="p-5">
+          </Card.Header>
+          <Card.Content className="p-5">
             <MacroBreakdownChart meals={meals} />
-          </CardBody>
+          </Card.Content>
         </Card>
       </div>
 
@@ -139,10 +137,9 @@ export function DashboardContent() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">AI Nutrition Analysis</h2>
           <Button
-            color="secondary"
-            variant="flat"
+            variant="secondary"
             onPress={handleAnalyzeNutrition}
-            isLoading={isAnalyzing}
+            isPending={isAnalyzing}
           >
             Analyze My Nutrition (AI)
           </Button>
@@ -151,7 +148,7 @@ export function DashboardContent() {
         {isAnalyzing && <AgentLoadingState agentName="Nutrition Analysis" />}
 
         {analysisError && (
-          <div className="p-3 rounded-lg bg-danger-50 dark:bg-danger-500/10 text-danger text-sm">
+          <div className="p-3 rounded-lg bg-danger-soft dark:bg-danger-soft text-danger text-sm">
             {analysisError}
           </div>
         )}
@@ -161,13 +158,13 @@ export function DashboardContent() {
         )}
       </div>
 
-      <Card className="border border-default-200 dark:border-default-100">
-        <CardHeader className="pb-0 px-5 pt-5">
+      <Card className="border border-border dark:border-border">
+        <Card.Header className="pb-0 px-5 pt-5">
           <h2 className="text-lg font-semibold">Recent Meals</h2>
-        </CardHeader>
-        <CardBody className="p-5">
+        </Card.Header>
+        <Card.Content className="p-5">
           {recentMeals.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-8 text-default-400">
+            <div className="flex flex-col items-center gap-2 py-8 text-muted">
               <p className="text-sm">No meals logged yet.</p>
               <p className="text-xs">Start by adding a meal to see your data here.</p>
             </div>
@@ -176,28 +173,28 @@ export function DashboardContent() {
               {recentMeals.map((meal) => (
                 <div
                   key={meal._id}
-                  className="flex items-center justify-between py-2 border-b border-default-100 dark:border-default-800 last:border-0"
+                  className="flex items-center justify-between py-2 border-b border-separator dark:border-separator last:border-0"
                 >
                   <div className="flex flex-col gap-1">
                     <p className="font-medium text-sm">{meal.title}</p>
                     <div className="flex items-center gap-2">
-                      <Chip size="sm" variant="flat" color="primary">
+                      <Chip size="sm" variant="soft" color="accent">
                         {meal.cuisineTag}
                       </Chip>
-                      <span className="text-xs text-default-400">
+                      <span className="text-xs text-muted">
                         {new Date(meal.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-sm">{meal.calories}</p>
-                    <p className="text-xs text-default-400">cal</p>
+                    <p className="text-xs text-muted">cal</p>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

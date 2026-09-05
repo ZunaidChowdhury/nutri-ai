@@ -5,6 +5,8 @@ import type { UsersResponse } from '@/lib/types/user';
 interface AdminListParams {
   page?: number;
   limit?: number;
+  search?: string;
+  cuisineTag?: string;
 }
 
 export async function getAdminMeals(
@@ -12,7 +14,12 @@ export async function getAdminMeals(
   token: string
 ): Promise<MealsResponse> {
   return serverFetch<MealsResponse>('/admin/meals', {
-    params: { page: params.page, limit: params.limit },
+    params: {
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      cuisineTag: params.cuisineTag,
+    },
     token,
   });
 }

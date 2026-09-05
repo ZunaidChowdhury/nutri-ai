@@ -1,13 +1,13 @@
-import { Card, CardHeader, CardBody, CardFooter } from '@heroui/card';
-import { Skeleton } from '@heroui/skeleton';
+import { Card } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
 
 export function SkeletonMealCard() {
   return (
-    <Card className="w-full border border-default-200 dark:border-default-100">
-      <CardHeader className="p-0 overflow-hidden">
+    <Card className="w-full border border-border">
+      <Card.Header className="p-0 overflow-hidden">
         <Skeleton className="w-full h-48 rounded-none" />
-      </CardHeader>
-      <CardBody className="gap-3 p-4">
+      </Card.Header>
+      <Card.Content className="gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <Skeleton className="h-5 w-3/5 rounded-md" />
           <Skeleton className="h-5 w-16 rounded-full shrink-0" />
@@ -21,10 +21,10 @@ export function SkeletonMealCard() {
           <Skeleton className="h-3 w-12 rounded-md" />
           <Skeleton className="h-3 w-24 rounded-md" />
         </div>
-      </CardBody>
-      <CardFooter className="p-4 pt-0">
+      </Card.Content>
+      <Card.Footer className="p-4 pt-0">
         <Skeleton className="h-8 w-full rounded-lg" />
-      </CardFooter>
+      </Card.Footer>
     </Card>
   );
 }

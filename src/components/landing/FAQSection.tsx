@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion, AccordionItem } from "@heroui/react";
+import { Accordion } from "@heroui/react";
 
 const faqs = [
   {
@@ -46,15 +46,16 @@ export default function FAQSection() {
           Everything you need to know about NutriAI
         </p>
 
-        <Accordion variant="bordered">
+        <Accordion>
           {faqs.map((faq, i) => (
-            <AccordionItem
-              key={i}
-              aria-label={faq.question}
-              title={faq.question}
-            >
-              {faq.answer}
-            </AccordionItem>
+            <Accordion.Item key={i} id={`faq-${i}`}>
+              <Accordion.Heading>
+                <Accordion.Trigger>{faq.question}</Accordion.Trigger>
+              </Accordion.Heading>
+              <Accordion.Panel>
+                <Accordion.Body>{faq.answer}</Accordion.Body>
+              </Accordion.Panel>
+            </Accordion.Item>
           ))}
         </Accordion>
       </div>

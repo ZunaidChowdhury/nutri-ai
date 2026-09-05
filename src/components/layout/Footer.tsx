@@ -28,12 +28,12 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-divider bg-default-50">
+    <footer className="border-t border-border bg-surface-secondary">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 lg:px-16">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <Link href="/" color="foreground" className="text-xl font-bold">
+            <Link href="/" className="text-xl font-bold text-foreground">
               NutriAI
             </Link>
             <p className="text-sm text-foreground/60">
@@ -45,7 +45,8 @@ export default function Footer() {
                 <Link
                   key={social.label}
                   href={social.href}
-                  isExternal
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={social.label}
                   className="text-foreground/50 hover:text-foreground transition-colors"
                 >
@@ -64,9 +65,7 @@ export default function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                color="foreground"
-                size="sm"
-                className="text-foreground/60 hover:text-foreground transition-colors"
+                className="text-sm text-foreground/60 hover:text-foreground transition-colors"
               >
                 {link.label}
               </Link>
@@ -82,9 +81,7 @@ export default function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                color="foreground"
-                size="sm"
-                className="text-foreground/60 hover:text-foreground transition-colors"
+                className="text-sm text-foreground/60 hover:text-foreground transition-colors"
               >
                 {link.label}
               </Link>
@@ -100,9 +97,7 @@ export default function Footer() {
               <HiMail className="size-4 shrink-0" />
               <Link
                 href="mailto:hello@nutriai.app"
-                color="foreground"
-                size="sm"
-                className="text-foreground/60 hover:text-foreground transition-colors"
+                className="text-sm text-foreground/60 hover:text-foreground transition-colors"
               >
                 hello@nutriai.app
               </Link>
@@ -114,7 +109,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-divider pt-6 text-center text-sm text-foreground/50">
+        <div className="mt-10 border-t border-border pt-6 text-center text-sm text-foreground/50">
           &copy; {year} NutriAI. All rights reserved.
         </div>
       </div>
