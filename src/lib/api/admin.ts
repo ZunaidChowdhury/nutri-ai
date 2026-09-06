@@ -29,7 +29,11 @@ export async function getAdminUsers(
   token: string
 ): Promise<UsersResponse> {
   return serverFetch<UsersResponse>('/admin/users', {
-    params: { page: params.page, limit: params.limit },
+    params: {
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+    },
     token,
   });
 }

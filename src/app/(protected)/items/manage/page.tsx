@@ -12,7 +12,7 @@ import {
 } from '@heroui/react';
 import { useSession } from '@/lib/auth/client';
 import { getAllMeals } from '@/lib/api/meal';
-import { deleteMeal } from '@/lib/actions/meal';
+import { deleteMeal, updateMealVisibility } from '@/lib/actions/meal';
 import { getAuthToken } from '@/lib/core/server';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
@@ -41,14 +41,19 @@ export default function ManageMealsPage() {
 
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['meals', 'manage', { page, userId, search, cuisineTag }],
-    queryFn: () =>
-      getAllMeals({
-        limit: 12,
-        page,
-        ownerId: userId,
-        search: search || undefined,
-        cuisineTag: cuisineTag || undefined,
-      }),
+    queryFn: async () => {
+      const token = await getAuthToken();
+      return getAllMeals(
+        {
+          limit: 12,
+          page,
+          ownerId: userId,
+          search: search || undefined,
+          cuisineTag: cuisineTag || undefined,
+        },
+        token || undefined
+      );
+    },
     enabled: !!userId,
   });
 
@@ -65,6 +70,17 @@ export default function ManageMealsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       setDeleteTarget(null);
+    },
+  });
+
+  const visibilityMutation = useMutation({
+    mutationFn: async ({ mealId, visibility }: { mealId: string; visibility: 'public' | 'private' }) => {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+      await updateMealVisibility(mealId, visibility, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
     },
   });
 
@@ -152,6 +168,7 @@ export default function ManageMealsPage() {
                     <Table.Column>CUISINE</Table.Column>
                     <Table.Column>CALORIES</Table.Column>
                     <Table.Column>RATING</Table.Column>
+                    <Table.Column>VISIBILITY</Table.Column>
                     <Table.Column>ACTIONS</Table.Column>
                   </Table.Header>
                   <Table.Body>
@@ -176,12 +193,62 @@ export default function ManageMealsPage() {
                         <Table.Cell>{meal.calories}</Table.Cell>
                         <Table.Cell>{meal.rating.toFixed(1)}</Table.Cell>
                         <Table.Cell>
+                          <div className="flex items-center gap-1.5">
+                            <Chip
+                              size="sm"
+                              variant="soft"
+                              color={meal.visibility === 'public' ? 'success' : 'default'}
+                            >
+                              {meal.visibility === 'public' ? 'Public' : 'Private'}
+                            </Chip>
+                            {meal.lockedVisibility && (
+                              <Chip size="sm" variant="soft" color="warning">
+                                Locked
+                              </Chip>
+                            )}
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
                           <div className="flex gap-2">
-                            <Link href={`/meals/${meal._id}`}>
-                              <Button size="sm" variant="secondary">
+                            {meal.visibility === 'public' ? (
+                              <Link href={`/meals/${meal._id}`}>
+                                <Button size="sm" variant="secondary">
+                                  View
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button size="sm" variant="secondary" isDisabled>
                                 View
                               </Button>
+                            )}
+                            <Link href={`/items/edit/${meal._id}`}>
+                              <Button size="sm" variant="secondary">
+                                Edit
+                              </Button>
                             </Link>
+                            {!meal.lockedVisibility && (
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                isPending={
+                                  visibilityMutation.isPending &&
+                                  visibilityMutation.variables?.mealId === meal._id
+                                }
+                                onPress={() =>
+                                  visibilityMutation.mutate({
+                                    mealId: meal._id,
+                                    visibility:
+                                      meal.visibility === 'public'
+                                        ? 'private'
+                                        : 'public',
+                                  })
+                                }
+                              >
+                                {meal.visibility === 'public'
+                                  ? 'Make private'
+                                  : 'Make public'}
+                              </Button>
+                            )}
                             {canDelete(meal) && (
                               <Button
                                 size="sm"
@@ -204,17 +271,44 @@ export default function ManageMealsPage() {
           <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
             {meals.map((meal) => (
               <div key={meal._id} className="relative">
-                <MealCard meal={meal} />
-                {canDelete(meal) && (
-                  <Button
-                    size="sm"
-                    variant="danger-soft"
-                    className="absolute top-2 right-2 z-10"
-                    onPress={() => setDeleteTarget(meal)}
-                  >
-                    Delete
-                  </Button>
-                )}
+                <MealCard meal={meal} linkDisabled={meal.visibility === 'private'} />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Link href={`/items/edit/${meal._id}`} className="flex-1">
+                    <Button size="sm" variant="secondary" className="w-full">
+                      Edit
+                    </Button>
+                  </Link>
+                  {!meal.lockedVisibility && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="flex-1"
+                      isPending={
+                        visibilityMutation.isPending &&
+                        visibilityMutation.variables?.mealId === meal._id
+                      }
+                      onPress={() =>
+                        visibilityMutation.mutate({
+                          mealId: meal._id,
+                          visibility:
+                            meal.visibility === 'public' ? 'private' : 'public',
+                        })
+                      }
+                    >
+                      {meal.visibility === 'public' ? 'Make private' : 'Make public'}
+                    </Button>
+                  )}
+                  {canDelete(meal) && (
+                    <Button
+                      size="sm"
+                      variant="danger-soft"
+                      className="flex-1"
+                      onPress={() => setDeleteTarget(meal)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

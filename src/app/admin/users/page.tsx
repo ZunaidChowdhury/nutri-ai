@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button, Chip, Table, Modal, Dropdown, Avatar, useOverlayState } from '@heroui/react';
+import { Button, Chip, Table, Modal, Dropdown, Avatar, TextField, Input, useOverlayState } from '@heroui/react';
 import { useSession } from '@/lib/auth/client';
 import { getAdminUsers } from '@/lib/api/admin';
 import { updateUserRole, deleteUser } from '@/lib/actions/admin';
@@ -25,21 +25,19 @@ function RoleSelector({
 }) {
   return (
     <Dropdown>
-      <Dropdown.Trigger>
-        <Button size="sm" variant="secondary" isDisabled={disabled}>
-          <Chip
-            size="sm"
-            variant="soft"
-            color={user.role === 'admin' ? 'success' : 'accent'}
-          >
-            {user.role === 'admin' ? (
-              <FiShield className="mr-1 inline" />
-            ) : (
-              <FiUser className="mr-1 inline" />
-            )}
-            {user.role}
-          </Chip>
-        </Button>
+      <Dropdown.Trigger isDisabled={disabled}>
+        <Chip
+          size="sm"
+          variant="soft"
+          color={user.role === 'admin' ? 'success' : 'accent'}
+        >
+          {user.role === 'admin' ? (
+            <FiShield className="mr-1 inline" />
+          ) : (
+            <FiUser className="mr-1 inline" />
+          )}
+          {user.role}
+        </Chip>
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu aria-label="Change role">
@@ -65,6 +63,7 @@ export default function AdminUsersPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [actionError, setActionError] = useState('');
 
@@ -72,15 +71,31 @@ export default function AdminUsersPage() {
   const ownId = sessionUser?.id;
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['admin', 'users', { page }],
+    queryKey: ['admin', 'users', { page, search }],
     queryFn: async () => {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
-      return getAdminUsers({ page, limit: 12 }, token);
+      return getAdminUsers(
+        {
+          page,
+          limit: 12,
+          search: search || undefined,
+        },
+        token
+      );
     },
   });
 
+  const [searchInput, setSearchInput] = useState('');
+
   const users = data?.data ?? [];
+  const hasActiveSearch = !!search;
+
+  const applySearch = (value: string) => {
+    setSearchInput(value);
+    setSearch(value.trim());
+    setPage(1);
+  };
 
   const roleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: 'user' | 'admin' }) => {
@@ -120,15 +135,6 @@ export default function AdminUsersPage() {
   if (isLoading) return <Spinner label="Loading users" />;
   if (isError) return <ErrorFallback error={error as Error} />;
 
-  if (users.length === 0) {
-    return (
-      <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">All Users</h1>
-        <EmptyState title="No users yet" description="No users have registered yet." />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
       <div className="flex flex-col gap-1">
@@ -138,12 +144,36 @@ export default function AdminUsersPage() {
         </p>
       </div>
 
+      <TextField className="w-full sm:max-w-md" fullWidth>
+        <Input
+          type="search"
+          placeholder="Search by name or email..."
+          aria-label="Search users"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') applySearch(searchInput);
+          }}
+        />
+      </TextField>
+
       {actionError && (
         <div className="rounded-lg bg-danger/10 px-4 py-2 text-sm text-danger dark:bg-danger/10 dark:text-danger">
           {actionError}
         </div>
       )}
 
+      {users.length === 0 ? (
+        <EmptyState
+          title={hasActiveSearch ? 'Nothing matched' : 'No users yet'}
+          description={
+            hasActiveSearch
+              ? 'No users match your search.'
+              : 'No users have registered yet.'
+          }
+        />
+      ) : (
+        <>
       <div className="hidden md:block">
         <Table>
           <Table.ScrollContainer>
@@ -229,6 +259,8 @@ export default function AdminUsersPage() {
           );
         })}
       </div>
+        </>
+      )}
 
       {data && data.total > 0 && (
         <ResultsPagination

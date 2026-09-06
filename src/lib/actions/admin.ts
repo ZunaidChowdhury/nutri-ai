@@ -19,3 +19,19 @@ export async function deleteUser(userId: string, token: string): Promise<void> {
     token,
   });
 }
+
+export async function updateMealVisibility(
+  mealId: string,
+  visibility: 'public' | 'private',
+  locked: boolean,
+  token: string
+): Promise<{ success: boolean; data: { visibility: 'public' | 'private'; lockedVisibility: boolean } }> {
+  return serverMutation<{
+    success: boolean;
+    data: { visibility: 'public' | 'private'; lockedVisibility: boolean };
+  }>(`/admin/meals/${mealId}/visibility`, {
+    method: 'PATCH',
+    body: { visibility, locked },
+    token,
+  });
+}

@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button, Chip, Table, Modal, useOverlayState } from '@heroui/react';
+import { Button, Chip, Table, Modal, Dropdown, useOverlayState } from '@heroui/react';
 import { getAdminMeals } from '@/lib/api/admin';
 import { deleteMeal } from '@/lib/actions/meal';
+import { updateMealVisibility as adminUpdateMealVisibility } from '@/lib/actions/admin';
 import { getAuthToken } from '@/lib/core/server';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
@@ -13,6 +14,86 @@ import { Spinner } from '@/components/feedback/Spinner';
 import { MealListFilters } from '@/components/meals/MealListFilters';
 import { ResultsPagination } from '@/components/ui/ResultsPagination';
 import type { Meal } from '@/lib/types/meal';
+
+function MealVisibilityControl({ meal }: { meal: Meal }) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      mealId,
+      visibility,
+      locked,
+    }: {
+      mealId: string;
+      visibility: 'public' | 'private';
+      locked: boolean;
+    }) => {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+      return adminUpdateMealVisibility(mealId, visibility, locked, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'meals'] });
+    },
+  });
+
+  const selected = meal.lockedVisibility ? 'private-locked' : meal.visibility;
+
+  return (
+    <Dropdown>
+      <Dropdown.Trigger isDisabled={mutation.isPending}>
+        <Chip
+          size="sm"
+          variant="soft"
+          color={
+            meal.lockedVisibility
+              ? 'warning'
+              : meal.visibility === 'public'
+                ? 'success'
+                : 'default'
+          }
+        >
+          {selected === 'public'
+            ? 'Public'
+            : selected === 'private'
+              ? 'Private'
+              : 'Private · Locked'}
+        </Chip>
+      </Dropdown.Trigger>
+      <Dropdown.Popover>
+        <Dropdown.Menu aria-label="Set meal visibility">
+          <Dropdown.Item
+            id="public"
+            textValue="Public"
+            onAction={() =>
+              mutation.mutate({ mealId: meal._id, visibility: 'public', locked: false })
+            }
+          >
+            Public
+          </Dropdown.Item>
+          <Dropdown.Item
+            id="private"
+            textValue="Private"
+            onAction={() =>
+              mutation.mutate({ mealId: meal._id, visibility: 'private', locked: false })
+            }
+          >
+            Private
+          </Dropdown.Item>
+          <Dropdown.Item
+            id="private-locked"
+            textValue="Private (Locked)"
+            onAction={() =>
+              mutation.mutate({ mealId: meal._id, visibility: 'private', locked: true })
+            }
+          >
+            Private (Locked)
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
+  );
+}
 
 export default function AdminMealsPage() {
   const queryClient = useQueryClient();
@@ -126,6 +207,7 @@ export default function AdminMealsPage() {
                 <Table.Column>CUISINE</Table.Column>
                 <Table.Column>CALORIES</Table.Column>
                 <Table.Column>RATING</Table.Column>
+                <Table.Column>VISIBILITY</Table.Column>
                 <Table.Column>ACTIONS</Table.Column>
               </Table.Header>
               <Table.Body>
@@ -157,10 +239,18 @@ export default function AdminMealsPage() {
                     <Table.Cell>{meal.calories}</Table.Cell>
                     <Table.Cell>{meal.rating.toFixed(1)}</Table.Cell>
                     <Table.Cell>
+                      <MealVisibilityControl meal={meal} />
+                    </Table.Cell>
+                    <Table.Cell>
                       <div className="flex gap-2">
                         <Link href={`/meals/${meal._id}`}>
                           <Button size="sm" variant="secondary">
                             View
+                          </Button>
+                        </Link>
+                        <Link href={`/items/edit/${meal._id}`}>
+                          <Button size="sm" variant="secondary">
+                            Edit
                           </Button>
                         </Link>
                         <Button

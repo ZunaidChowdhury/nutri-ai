@@ -9,28 +9,46 @@ import { FireIcon, StarIcon } from '@/components/ui/icons';
 
 interface MealCardProps {
   meal: Meal;
+  linkDisabled?: boolean;
 }
 
-export function MealCard({ meal }: MealCardProps) {
+export function MealCard({ meal, linkDisabled = false }: MealCardProps) {
   return (
     <Card className="group w-full border border-border">
       <Card.Header className="p-0 overflow-hidden">
-        <Link href={`/meals/${meal._id}`} className="block w-full h-48 overflow-hidden">
-          <img
-            alt={meal.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            src={meal.imageUrl || '/placeholder-meal.svg'}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder-meal.svg';
-            }}
-          />
-        </Link>
+        {linkDisabled ? (
+          <div className="block w-full h-48 overflow-hidden">
+            <img
+              alt={meal.title}
+              className="w-full h-full object-cover"
+              src={meal.imageUrl || '/placeholder-meal.svg'}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/placeholder-meal.svg';
+              }}
+            />
+          </div>
+        ) : (
+          <Link href={`/meals/${meal._id}`} className="block w-full h-48 overflow-hidden">
+            <img
+              alt={meal.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              src={meal.imageUrl || '/placeholder-meal.svg'}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/placeholder-meal.svg';
+              }}
+            />
+          </Link>
+        )}
       </Card.Header>
       <Card.Content className="gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/meals/${meal._id}`}>
-            <h3 className="text-lg font-semibold line-clamp-1 group-hover:text-accent transition-colors">{meal.title}</h3>
-          </Link>
+          {linkDisabled ? (
+            <h3 className="text-lg font-semibold line-clamp-1">{meal.title}</h3>
+          ) : (
+            <Link href={`/meals/${meal._id}`}>
+              <h3 className="text-lg font-semibold line-clamp-1 group-hover:text-accent transition-colors">{meal.title}</h3>
+            </Link>
+          )}
           <Chip
             size="sm"
             variant="soft"
@@ -57,18 +75,24 @@ export function MealCard({ meal }: MealCardProps) {
         </div>
       </Card.Content>
       <Card.Footer className="p-4 pt-0">
-        <Link
-          href={`/meals/${meal._id}`}
-          className="w-full"
-        >
-          <Button
-            variant="primary"
-            size="sm"
-            fullWidth
+        {linkDisabled ? (
+          <Chip size="sm" variant="soft" color="default">
+            {meal.lockedVisibility ? 'Private · Locked' : 'Private'}
+          </Chip>
+        ) : (
+          <Link
+            href={`/meals/${meal._id}`}
+            className="w-full"
           >
-            View Details
-          </Button>
-        </Link>
+            <Button
+              variant="primary"
+              size="sm"
+              fullWidth
+            >
+              View Details
+            </Button>
+          </Link>
+        )}
       </Card.Footer>
     </Card>
   );

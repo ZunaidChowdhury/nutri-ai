@@ -17,6 +17,7 @@ interface MealInput {
   };
   cuisineTag: string;
   rating?: number;
+  visibility?: 'public' | 'private';
 }
 
 interface MealResponse {
@@ -49,4 +50,30 @@ export async function deleteMeal(
     method: 'DELETE',
     token,
   });
+}
+
+export async function updateMeal(
+  id: string,
+  data: MealInput,
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/${id}`, {
+    method: 'PATCH',
+    body: data,
+    token,
+  });
+  return response.data;
+}
+
+export async function updateMealVisibility(
+  id: string,
+  visibility: 'public' | 'private',
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/${id}/visibility`, {
+    method: 'PATCH',
+    body: { visibility },
+    token,
+  });
+  return response.data;
 }
