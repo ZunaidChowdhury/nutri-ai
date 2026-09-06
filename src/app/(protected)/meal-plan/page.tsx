@@ -11,13 +11,18 @@ import {
   Input,
   Label,
   ListBox,
+  Modal,
   Select,
   Separator,
   TextField,
+  useOverlayState,
 } from '@heroui/react';
 import { generateMealPlan } from '@/lib/api/mealplan';
 import { getAuthToken } from '@/lib/core/server';
 import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
+import { useSession } from '@/lib/auth/client';
+import { useSelectedMeals } from '@/lib/hooks/useSelectedMeals';
+import { CheckIcon, PlusIcon } from '@/components/ui/icons';
 import type { RootState, AppDispatch } from '@/store/store';
 import {
   setGoal,
@@ -138,12 +143,27 @@ export default function MealPlanPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const form = useSelector((state: RootState) => state.mealPlanForm);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const { selectedMeals } = useSelectedMeals(userId);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [plan, setPlan] = useState<MealPlanDay[] | null>(null);
+  const [lastSource, setLastSource] = useState<'random' | 'selected'>('random');
+  const [pendingSource, setPendingSource] = useState<'random' | 'selected'>('random');
+  const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
 
-  const handleGenerate = async () => {
+  const sourceModal = useOverlayState({
+    isOpen: isSourceModalOpen,
+    onOpenChange: setIsSourceModalOpen,
+  });
+
+  const selectedCount = selectedMeals.length;
+  const MIN_SELECTED = 10;
+  const selectedEnabled = selectedCount >= MIN_SELECTED;
+
+  const runGeneration = async (source: 'random' | 'selected') => {
     setError('');
     setIsGenerating(true);
 
@@ -159,22 +179,36 @@ export default function MealPlanPage() {
         form.restrictions,
         form.budget,
         form.calorieTarget,
+        source,
         token
       );
 
       setPlan(result.days);
+      setLastSource(source);
     } catch (err: unknown) {
       const e = err as { code?: string; status?: number; message?: string };
       if (e?.status === 401) {
         setError('Your session has expired. Please sign in again.');
       } else if (e?.code === 'RATE_LIMITED' || e?.status === 429) {
         setError('You have reached the meal-planning limit. Please try again later.');
+      } else if (e?.status === 400 && e?.message) {
+        setError(e.message);
       } else {
         setError(e?.message || 'Failed to generate meal plan. Please try again.');
       }
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleGenerate = () => {
+    setPendingSource('random');
+    setIsSourceModalOpen(true);
+  };
+
+  const confirmSource = () => {
+    setIsSourceModalOpen(false);
+    runGeneration(pendingSource);
   };
 
   const totalCalories =
@@ -322,7 +356,7 @@ export default function MealPlanPage() {
             </div>
             <Button
               variant="secondary"
-              onPress={handleGenerate}
+              onPress={() => runGeneration(lastSource)}
               isPending={isGenerating}
             >
               Regenerate
@@ -336,6 +370,95 @@ export default function MealPlanPage() {
           </div>
         </div>
       )}
+
+      <Modal state={sourceModal}>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="md">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>How should your plan be built?</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <p className="text-sm text-muted">
+                  Choose which meals the AI should pull from when generating your 7-day plan.
+                </p>
+                <div className="flex flex-col gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPendingSource('random')}
+                    className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-colors cursor-pointer ${
+                      pendingSource === 'random'
+                        ? 'border-accent bg-accent-soft'
+                        : 'border-border hover:bg-surface-secondary'
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border ${
+                        pendingSource === 'random'
+                          ? 'border-accent bg-accent text-white'
+                          : 'border-border'
+                      }`}
+                    >
+                      {pendingSource === 'random' && <CheckIcon className="size-3" />}
+                    </span>
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-medium">
+                        <PlusIcon className="size-4 inline mr-1 -mt-0.5" />
+                        Random meals
+                      </span>
+                      <span className="text-sm text-muted">
+                        The AI picks from the whole nutrition catalog, matching your goal, restrictions and calorie target.
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!selectedEnabled}
+                    onClick={() => setPendingSource('selected')}
+                    className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-colors cursor-pointer ${
+                      !selectedEnabled
+                        ? 'opacity-50 cursor-not-allowed'
+                        : pendingSource === 'selected'
+                          ? 'border-accent bg-accent-soft'
+                          : 'border-border hover:bg-surface-secondary'
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border ${
+                        pendingSource === 'selected'
+                          ? 'border-accent bg-accent text-white'
+                          : 'border-border'
+                      }`}
+                    >
+                      {pendingSource === 'selected' && <CheckIcon className="size-3" />}
+                    </span>
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-medium">Selected meals ({selectedCount})</span>
+                      <span className="text-sm text-muted">
+                        The AI builds your plan exclusively from your selected meal list.
+                      </span>
+                      {!selectedEnabled && (
+                        <span className="text-xs text-warning">
+                          Select at least {MIN_SELECTED} meals to use this option.
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onPress={() => setIsSourceModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onPress={confirmSource}>
+                  Continue
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }

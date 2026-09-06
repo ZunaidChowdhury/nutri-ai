@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedRoutes = ["/dashboard", "/meal-plan", "/items/add", "/items/manage", "/admin"];
+const protectedRoutes = ["/dashboard", "/meal-plan", "/items/add", "/items/manage", "/items/selected", "/admin"];
 
 export default async function authProxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,6 +25,7 @@ export const config = {
     "/meal-plan/:path*",
     "/items/add/:path*",
     "/items/manage/:path*",
+    "/items/selected/:path*",
     "/admin/:path*",
   ],
 };

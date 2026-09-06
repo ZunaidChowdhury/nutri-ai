@@ -11,6 +11,7 @@ import {
   useOverlayState,
 } from '@heroui/react';
 import { useSession } from '@/lib/auth/client';
+import { useSelectedMeals } from '@/lib/hooks/useSelectedMeals';
 import { getAllMeals } from '@/lib/api/meal';
 import { deleteMeal, updateMealVisibility } from '@/lib/actions/meal';
 import { getAuthToken } from '@/lib/core/server';
@@ -36,6 +37,7 @@ export default function ManageMealsPage() {
   });
 
   const userId = session?.user?.id;
+  const { isSelected, toggleMeal } = useSelectedMeals(userId);
   const user = session?.user as { id: string; role?: 'user' | 'admin' } | undefined;
   const userRole = user?.role;
 
@@ -271,7 +273,12 @@ export default function ManageMealsPage() {
           <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
             {meals.map((meal) => (
               <div key={meal._id} className="relative">
-                <MealCard meal={meal} linkDisabled={meal.visibility === 'private'} />
+                <MealCard
+                  meal={meal}
+                  linkDisabled={meal.visibility === 'private'}
+                  selected={userId ? isSelected(meal._id) : false}
+                  onToggleSelect={userId ? () => toggleMeal(meal) : undefined}
+                />
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Link href={`/items/edit/${meal._id}`} className="flex-1">
                     <Button size="sm" variant="secondary" className="w-full">
@@ -327,35 +334,36 @@ export default function ManageMealsPage() {
       )}
 
       <Modal state={deleteModal}>
-        <Modal.Backdrop />
-        <Modal.Container placement="center" size="md">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>Delete Meal</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <p>
-                Are you sure you want to delete{' '}
-                <strong>{deleteTarget?.title}</strong>? This action cannot be
-                undone.
-              </p>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                isPending={deleteMutation.isPending}
-                onPress={() => {
-                  if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
-                }}
-              >
-                Delete
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="md">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Delete Meal</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <p>
+                  Are you sure you want to delete{' '}
+                  <strong>{deleteTarget?.title}</strong>? This action cannot be
+                  undone.
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  isPending={deleteMutation.isPending}
+                  onPress={() => {
+                    if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );

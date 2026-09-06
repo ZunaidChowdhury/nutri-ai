@@ -125,6 +125,13 @@ export default function Navbar() {
                 >
                   Manage Meals
                 </Dropdown.Item>
+                <Dropdown.Item
+                  id="selectedmeals"
+                  textValue="Selected Meals"
+                  onAction={() => router.push("/items/selected")}
+                >
+                  Selected Meals
+                </Dropdown.Item>
                 {isAdmin && (
                   <>
                     <Dropdown.Section aria-label="Admin" className="py-1">
@@ -228,6 +235,20 @@ export default function Navbar() {
           )}
           {isLoggedIn && (
             <>
+              <Link
+                href="/items/selected"
+                className="block py-2 text-lg text-foreground"
+                onPress={() => setIsMenuOpen(false)}
+              >
+                Selected Meals
+              </Link>
+              <Link
+                href="/items/manage"
+                className="block py-2 text-lg text-foreground"
+                onPress={() => setIsMenuOpen(false)}
+              >
+                Manage Meals
+              </Link>
               {isAdmin && (
                 <>
                   <Link

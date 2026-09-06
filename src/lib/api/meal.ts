@@ -1,5 +1,5 @@
 import { serverFetch } from '@/lib/core/server';
-import type { MealFilters, MealsResponse, MealDetailResponse } from '@/lib/types/meal';
+import type { MealFilters, MealsResponse, MealDetailResponse, Meal } from '@/lib/types/meal';
 
 export async function getAllMeals(
   filters: MealFilters = {},
@@ -31,4 +31,12 @@ export async function getMealByIdPublic(
   id: string
 ): Promise<MealDetailResponse> {
   return serverFetch<MealDetailResponse>(`/meals/${id}`);
+}
+
+export async function getSelectedMeals(token: string): Promise<Meal[]> {
+  const res = await serverFetch<{ success: boolean; data: Meal[] }>(
+    '/meals/selected',
+    { token }
+  );
+  return res.data;
 }

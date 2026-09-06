@@ -14,6 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllMeals } from '@/lib/api/meal';
 import type { MealsResponse } from '@/lib/types/meal';
+import { useSession } from '@/lib/auth/client';
+import { useSelectedMeals } from '@/lib/hooks/useSelectedMeals';
 import { ResultsPagination } from '@/components/ui/ResultsPagination';
 import { MealGrid } from './MealGrid';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -57,6 +59,9 @@ export function ExploreContent({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const { selectedIds, toggleMeal } = useSelectedMeals(userId);
   const filters = useSelector((state: RootState) => state.filters);
   const [searchInput, setSearchInput] = useState(
     () => searchParams.get('search') || ''
@@ -344,7 +349,12 @@ export function ExploreContent({
           }
         />
       ) : (
-        <MealGrid meals={data?.data || []} isLoading={isLoading} />
+        <MealGrid
+          meals={data?.data || []}
+          isLoading={isLoading}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleMeal}
+        />
       )}
 
       {!isEmpty && totalPages > 0 && (

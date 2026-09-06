@@ -5,17 +5,34 @@ import { Chip } from '@heroui/react';
 import { Button } from '@heroui/react';
 import Link from 'next/link';
 import type { Meal } from '@/lib/types/meal';
-import { FireIcon, StarIcon } from '@/components/ui/icons';
+import { FireIcon, StarIcon, PlusIcon, CheckIcon } from '@/components/ui/icons';
 
 interface MealCardProps {
   meal: Meal;
   linkDisabled?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
-export function MealCard({ meal, linkDisabled = false }: MealCardProps) {
+export function MealCard({ meal, linkDisabled = false, selected = false, onToggleSelect }: MealCardProps) {
   return (
     <Card className="group w-full border border-border">
-      <Card.Header className="p-0 overflow-hidden">
+      <Card.Header className="p-0 overflow-hidden relative">
+        {onToggleSelect && (
+          <button
+            type="button"
+            aria-label={selected ? 'Remove from selected meals' : 'Add to selected meals'}
+            title={selected ? 'Remove from selected meals' : 'Add to selected meals'}
+            onClick={() => onToggleSelect()}
+            className={`absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full shadow-sm transition-colors cursor-pointer ${
+              selected
+                ? 'bg-success text-background border border-success'
+                : 'bg-background/90 text-muted hover:text-foreground border border-border'
+            }`}
+          >
+            {selected ? <CheckIcon className="size-4" /> : <PlusIcon className="size-4" />}
+          </button>
+        )}
         {linkDisabled ? (
           <div className="block w-full h-48 overflow-hidden">
             <img

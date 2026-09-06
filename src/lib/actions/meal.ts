@@ -77,3 +77,24 @@ export async function updateMealVisibility(
   });
   return response.data;
 }
+
+export async function addSelectedMeal(
+  mealId: string,
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/selected/${mealId}`, {
+    method: 'POST',
+    token,
+  });
+  return response.data;
+}
+
+export async function removeSelectedMeal(
+  mealId: string,
+  token: string
+): Promise<void> {
+  await serverMutation<DeleteResponse>(`/meals/selected/${mealId}`, {
+    method: 'DELETE',
+    token,
+  });
+}

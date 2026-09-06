@@ -6,11 +6,12 @@ export async function generateMealPlan(
   restrictions: string[],
   budget: string,
   calorieTarget: number,
+  source: 'random' | 'selected',
   token: string
 ): Promise<MealPlanResponse['data']> {
   const res = await serverMutation<MealPlanResponse>('/agents/meal-planning', {
     method: 'POST',
-    body: { goal, restrictions, budget, calorieTarget },
+    body: { goal, restrictions, budget, calorieTarget, source },
     token,
   });
   return res.data;
