@@ -1,22 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Button, Card, Chip } from '@heroui/react';
 import { getUserMeals } from '@/lib/api/dashboard';
+import { getMyMealPlan } from '@/lib/api/mealplan';
+import { downloadMealPlanPdf } from '@/lib/mealplanExport';
 import { getAuthToken } from '@/lib/core/server';
 import type { Meal } from '@/lib/types/meal';
+import type { MealPlan } from '@/lib/types/mealplan';
+import { DayCard } from '@/components/mealplan/DayCard';
 import { CaloriesLineChart } from './CaloriesLineChart';
 import { MacroBreakdownChart } from './MacroBreakdownChart';
 import { NutritionReportCard } from './NutritionReportCard';
 import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
 import { analyzeNutrition } from '@/lib/api/nutrition';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
+import { DownloadIcon } from '@/components/ui/icons';
 import type { NutritionReport } from '@/lib/types/nutrition';
 
 export function DashboardContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
+  const [planLoading, setPlanLoading] = useState(true);
   const [nutritionReport, setNutritionReport] = useState<NutritionReport | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState('');
@@ -48,6 +56,28 @@ export function DashboardContent() {
 
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const token = await getAuthToken();
+      if (cancelled || !token) return;
+
+      try {
+        const plan = await getMyMealPlan(token);
+        if (!cancelled) setMealPlan(plan);
+      } catch {
+        if (!cancelled) setMealPlan(null);
+      } finally {
+        if (!cancelled) setPlanLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const planStart = mealPlan?.createdAt ? new Date(mealPlan.createdAt) : null;
 
   const handleAnalyzeNutrition = async () => {
     setAnalysisError('');
@@ -132,6 +162,73 @@ export function DashboardContent() {
           </Card.Content>
         </Card>
       </div>
+
+      <Card className="border border-border dark:border-border">
+        <Card.Header className="pb-0 px-5 pt-5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">Your 7-Day Meal Plan</h2>
+            {mealPlan && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => downloadMealPlanPdf(mealPlan)}
+              >
+                <DownloadIcon className="size-4" />
+                Download PDF
+              </Button>
+            )}
+          </div>
+        </Card.Header>
+        <Card.Content className="p-5">
+          {planLoading ? (
+            <div className="animate-pulse space-y-3">
+              <div className="h-24 rounded-lg bg-surface-secondary" />
+              <div className="h-24 rounded-lg bg-surface-secondary" />
+            </div>
+          ) : mealPlan && planStart ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between text-sm text-muted">
+                <span>
+                  Generated for week of {planStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </span>
+                <Link
+                  href="/meal-plan"
+                  className="text-accent hover:underline font-medium"
+                >
+                  Regenerate or edit
+                </Link>
+              </div>
+              {mealPlan.days.map((day) => {
+                const dayDate = new Date(planStart);
+                dayDate.setDate(planStart.getDate() + (day.day - 1));
+                return (
+                  <DayCard
+                    key={day.day}
+                    day={day}
+                    dateLabel={dayDate.toLocaleDateString(undefined, {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <p className="text-sm text-muted">No meal plan yet.</p>
+              <p className="text-xs text-muted">
+                Generate a personalized 7-day plan with the AI meal planner.
+              </p>
+              <Link href="/meal-plan">
+                <Button variant="primary" size="sm">
+                  Generate Meal Plan
+                </Button>
+              </Link>
+            </div>
+          )}
+        </Card.Content>
+      </Card>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">

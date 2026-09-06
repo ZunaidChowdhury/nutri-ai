@@ -13,16 +13,17 @@ import {
   ListBox,
   Modal,
   Select,
-  Separator,
   TextField,
   useOverlayState,
 } from '@heroui/react';
 import { generateMealPlan } from '@/lib/api/mealplan';
+import { downloadMealPlanPdf } from '@/lib/mealplanExport';
 import { getAuthToken } from '@/lib/core/server';
 import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
+import { DayCard } from '@/components/mealplan/DayCard';
 import { useSession } from '@/lib/auth/client';
 import { useSelectedMeals } from '@/lib/hooks/useSelectedMeals';
-import { CheckIcon, PlusIcon } from '@/components/ui/icons';
+import { CheckIcon, DownloadIcon, PlusIcon } from '@/components/ui/icons';
 import type { RootState, AppDispatch } from '@/store/store';
 import {
   setGoal,
@@ -30,7 +31,7 @@ import {
   setBudget,
   setCalorieTarget,
 } from '@/store/mealPlanFormSlice';
-import type { MealPlanDay, MealPlanDayMeal } from '@/lib/types/mealplan';
+import type { MealPlanDay } from '@/lib/types/mealplan';
 
 const GOALS = [
   { value: 'lose', label: 'Weight Loss' },
@@ -56,89 +57,6 @@ const BUDGETS = [
   { value: 'high', label: 'High' },
 ];
 
-function MacroBar({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-muted w-14">{label}</span>
-      <div className="flex-1 h-2 rounded-full bg-surface-secondary dark:bg-surface-secondary">
-        <div
-          className={`h-2 rounded-full ${color}`}
-          style={{ width: `${Math.min(value / 3, 100)}%` }}
-        />
-      </div>
-      <span className="text-xs font-semibold w-10 text-right">{value}g</span>
-    </div>
-  );
-}
-
-function DayCard({ day }: { day: MealPlanDay }) {
-  return (
-    <Card className="border border-border dark:border-border">
-      <Card.Header className="pb-2 pt-4 px-5">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft dark:bg-accent-soft text-accent font-bold text-sm">
-            {day.day}
-          </div>
-          <h3 className="text-lg font-semibold">Day {day.day}</h3>
-        </div>
-      </Card.Header>
-      <Card.Content className="px-5 pb-5">
-        <Accordion>
-          {day.meals.map((meal, i) => (
-            <Accordion.Item key={i} id={`${day.day}-${i}`}>
-              <Accordion.Heading>
-                <Accordion.Trigger>
-                  <div className="flex items-center justify-between w-full pr-4">
-                    <span className="font-medium">{meal.name}</span>
-                    <Chip size="sm" variant="soft" color="accent">
-                      {meal.calories} cal
-                    </Chip>
-                  </div>
-                </Accordion.Trigger>
-              </Accordion.Heading>
-              <Accordion.Panel>
-                <Accordion.Body>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-1.5">
-                      <MacroBar label="Protein" value={meal.macros.protein} color="bg-danger" />
-                      <MacroBar label="Carbs" value={meal.macros.carbs} color="bg-warning" />
-                      <MacroBar label="Fat" value={meal.macros.fat} color="bg-accent" />
-                    </div>
-
-                    <Separator />
-
-                    <div>
-                      <h4 className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
-                        Ingredients
-                      </h4>
-                      <ul className="flex flex-wrap gap-1.5">
-                        {meal.ingredients.map((ing, j) => (
-                          <Chip key={j} size="sm" variant="soft" color="default">
-                            {ing}
-                          </Chip>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
-                        Instructions
-                      </h4>
-                      <p className="text-sm text-default dark:text-muted leading-relaxed">
-                        {meal.instructions}
-                      </p>
-                    </div>
-                  </div>
-                </Accordion.Body>
-              </Accordion.Panel>
-            </Accordion.Item>
-          ))}
-        </Accordion>
-      </Card.Content>
-    </Card>
-  );
-}
-
 export default function MealPlanPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
@@ -150,6 +68,7 @@ export default function MealPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [plan, setPlan] = useState<MealPlanDay[] | null>(null);
+  const [planCreatedAt, setPlanCreatedAt] = useState<string | null>(null);
   const [lastSource, setLastSource] = useState<'random' | 'selected'>('random');
   const [pendingSource, setPendingSource] = useState<'random' | 'selected'>('random');
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
@@ -184,6 +103,7 @@ export default function MealPlanPage() {
       );
 
       setPlan(result.days);
+      setPlanCreatedAt(new Date().toISOString());
       setLastSource(source);
     } catch (err: unknown) {
       const e = err as { code?: string; status?: number; message?: string };
@@ -215,6 +135,21 @@ export default function MealPlanPage() {
     plan
       ?.flatMap((d) => d.meals)
       .reduce((sum, m) => sum + m.calories, 0) ?? 0;
+
+  const handleDownloadPdf = () => {
+    if (!plan) return;
+    downloadMealPlanPdf({
+      inputs: {
+        goal: form.goal,
+        restrictions: form.restrictions,
+        budget: form.budget,
+        calorieTarget: form.calorieTarget,
+        source: lastSource,
+      },
+      days: plan,
+      createdAt: planCreatedAt ?? undefined,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-4xl mx-auto w-full">
@@ -354,13 +289,22 @@ export default function MealPlanPage() {
                 ~{Math.round(totalCalories / 7)} cal/day avg
               </Chip>
             </div>
-            <Button
-              variant="secondary"
-              onPress={() => runGeneration(lastSource)}
-              isPending={isGenerating}
-            >
-              Regenerate
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                onPress={handleDownloadPdf}
+              >
+                <DownloadIcon className="size-4" />
+                Download PDF
+              </Button>
+              <Button
+                variant="outline"
+                onPress={() => runGeneration(lastSource)}
+                isPending={isGenerating}
+              >
+                Regenerate
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4">
