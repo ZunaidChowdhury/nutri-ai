@@ -9,17 +9,18 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import type { Meal } from '@/lib/types/meal';
 
-function groupCaloriesByDay(meals: Meal[]): { date: string; calories: number }[] {
+interface ChartEntry {
+  date: string;
+  calories: number;
+}
+
+function groupCaloriesByDay(entries: ChartEntry[]): { date: string; calories: number }[] {
   const map = new Map<string, number>();
 
-  for (const meal of meals) {
-    const day = new Date(meal.createdAt).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-    map.set(day, (map.get(day) || 0) + meal.calories);
+  for (const entry of entries) {
+    const day = entry.date;
+    map.set(day, (map.get(day) || 0) + entry.calories);
   }
 
   return Array.from(map.entries())
@@ -28,17 +29,17 @@ function groupCaloriesByDay(meals: Meal[]): { date: string; calories: number }[]
 }
 
 interface CaloriesLineChartProps {
-  meals: Meal[];
+  entries: ChartEntry[];
 }
 
-export function CaloriesLineChart({ meals }: CaloriesLineChartProps) {
-  const data = groupCaloriesByDay(meals);
+export function CaloriesLineChart({ entries }: CaloriesLineChartProps) {
+  const data = groupCaloriesByDay(entries);
 
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-default-400">
         <p className="text-sm">No calorie data to chart yet.</p>
-        <p className="text-xs mt-1">Log some meals to see your trends over time.</p>
+        <p className="text-xs mt-1">Log some foods to see your trends over time.</p>
       </div>
     );
   }
