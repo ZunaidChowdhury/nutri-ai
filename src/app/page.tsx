@@ -1,4 +1,5 @@
 import HeroSection from "@/components/landing/HeroSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import FeaturedMealsSection from "@/components/landing/FeaturedMealsSection";
 import AgentSpotlightSection from "@/components/landing/AgentSpotlightSection";
 import StatsSection from "@/components/landing/StatsSection";
@@ -11,8 +12,9 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <FeaturedMealsSection />
+      <HowItWorksSection />
       <AgentSpotlightSection />
+      <FeaturedMealsSection />
       <StatsSection />
       <TestimonialsSection />
       <FAQSection />
