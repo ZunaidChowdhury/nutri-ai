@@ -105,7 +105,7 @@ export default function AgentPipelineSection() {
         {/* Bottom Banner inside Section */}
         <div className="mt-12 rounded-2xl border border-[#DCE9E4] bg-white/70 p-5 backdrop-blur-xs text-center dark:border-border dark:bg-surface-secondary/50">
           <p className="text-xs sm:text-sm font-medium text-[#163330] dark:text-foreground">
-            ⚡ Powered by Groq Llama-3 high-speed inference for instant sub-second plan generation.
+            ⚡ Powered by openai/gpt-oss-120b high-speed inference for instant sub-second plan generation.
           </p>
         </div>
       </div>

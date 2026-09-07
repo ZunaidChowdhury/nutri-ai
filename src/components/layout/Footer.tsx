@@ -38,9 +38,9 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t border-[#DCE9E4] bg-white dark:border-border dark:bg-[#0a0a0a]">
+    <footer className="w-full border-t border-[#DCE9E4] bg-[#EEF7F3] dark:border-border dark:bg-[#0c1613]">
       {/* Pre-Footer Highlight Bar */}
-      <div className="border-b border-[#DCE9E4]/60 bg-[#F7FAF8] py-4 dark:border-border/60 dark:bg-[#121c19]">
+      <div className="border-b border-[#DCE9E4]/60 bg-[#E5F2EC] py-3.5 dark:border-border/60 dark:bg-[#09110f]">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-[#55706B] dark:text-muted">
             <div className="flex items-center gap-2">
@@ -49,7 +49,7 @@ export default function Footer() {
                 All AI Systems Active
               </span>
               <span>•</span>
-              <span>Llama-3 Tri-Agent Core v2.4</span>
+              <span>GPT-OSS-120B Tri-Agent Core v2.4</span>
             </div>
             <div className="hidden sm:flex items-center gap-6">
               <span>🌿 Organic & AI Synergized</span>
@@ -89,7 +89,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#DCE9E4] bg-[#F7FAF8] text-[#55706B] transition-all hover:-translate-y-0.5 hover:border-[#007F78]/40 hover:bg-[#007F78] hover:text-white dark:border-border dark:bg-surface-secondary dark:text-muted dark:hover:bg-accent dark:hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#DCE9E4] bg-white text-[#55706B] shadow-2xs transition-all hover:-translate-y-0.5 hover:border-[#007F78]/40 hover:bg-[#007F78] hover:text-white dark:border-border dark:bg-[#14221d] dark:text-muted dark:hover:bg-accent dark:hover:text-white"
                 >
                   <social.icon className="h-4 w-4" />
                 </a>
@@ -156,7 +156,7 @@ export default function Footer() {
 
           {/* Start Free Card Widget (3 cols) */}
           <div className="lg:col-span-3">
-            <div className="rounded-2xl border border-[#DCE9E4] bg-[#F7FAF8] p-5 shadow-xs dark:border-border dark:bg-[#14201c]">
+            <div className="rounded-2xl border border-[#DCE9E4] bg-white p-5 shadow-xs dark:border-border dark:bg-[#14221d]">
               <div className="flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#007F78] text-white text-xs">
                   🥗
