@@ -114,7 +114,9 @@ export default function Navbar() {
                   Hi, {firstName}
                 </span>
                 {isAdmin && (
-                  <AdminShieldIcon className="h-4.5 w-4.5 text-[#007F78] dark:text-accent" title="Admin" />
+                  <span title="Admin" className="flex items-center justify-center">
+                    <AdminShieldIcon className="h-4.5 w-4.5 text-[#007F78] dark:text-accent" />
+                  </span>
                 )}
                 <Avatar size="sm">
                   <Avatar.Image src={user?.image || ""} />
