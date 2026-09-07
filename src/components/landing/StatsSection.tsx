@@ -1,54 +1,82 @@
 "use client";
 
-import { useInView } from "framer-motion";
-import { useRef } from "react";
-import { HiFire, HiUserGroup, HiClipboardList, HiChartPie } from "react-icons/hi";
+import { motion } from "framer-motion";
+import { HiFire, HiUserGroup, HiClipboardList, HiSparkles } from "react-icons/hi";
 
 const stats = [
-  { icon: HiFire, value: "10,000+", label: "Meals Analyzed" },
-  { icon: HiUserGroup, value: "500+", label: "Active Users" },
-  { icon: HiClipboardList, value: "1,200+", label: "Meal Plans Created" },
-  { icon: HiChartPie, value: "50+", label: "Cuisine Types" },
+  {
+    icon: HiFire,
+    value: "25,000+",
+    label: "Meals Logged & Analyzed",
+    badge: "Real-time AI analysis",
+    bgClass: "bg-[#FFFBEB] dark:bg-[#F59E0B]/20",
+    textClass: "text-[#F59E0B]",
+  },
+  {
+    icon: HiClipboardList,
+    value: "8,500+",
+    label: "Custom Meal Plans Generated",
+    badge: "Personalized macros",
+    bgClass: "bg-[#DDF5F0] dark:bg-accent/20",
+    textClass: "text-[#007F78] dark:text-accent",
+  },
+  {
+    icon: HiUserGroup,
+    value: "1,200+",
+    label: "Active Health Seekers",
+    badge: "Growing community",
+    bgClass: "bg-[#EAF7DE] dark:bg-[#65B82E]/20",
+    textClass: "text-[#65B82E]",
+  },
+  {
+    icon: HiSparkles,
+    value: "98.4%",
+    label: "Nutritional Accuracy",
+    badge: "Validated by data",
+    bgClass: "bg-[#EEF7F3] dark:bg-surface-secondary",
+    textClass: "text-[#007F78] dark:text-accent",
+  },
 ];
-
-function AnimatedStat({ icon: Icon, value, label }: { icon: React.ComponentType<{ className?: string }>; value: string; label: string }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  return (
-    <div
-      ref={ref}
-      className="flex flex-col items-center gap-3 text-center"
-    >
-      <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
-        <Icon className="size-7 text-primary" />
-      </div>
-      <span
-        className={`text-3xl font-bold transition-all duration-700 ${
-          isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        }`}
-      >
-        {value}
-      </span>
-      <span className="text-foreground/60">{label}</span>
-    </div>
-  );
-}
 
 export default function StatsSection() {
   return (
-    <section className="px-4 py-16 md:px-8 lg:px-16">
-      <div className="mx-auto max-w-7xl">
-        <h2 className="mb-2 text-center text-3xl font-bold">
-          Growing Stronger Every Day
-        </h2>
-        <p className="mb-10 text-center text-foreground/60">
-          Our community&apos;s journey to better nutrition
-        </p>
+    <section className="w-full bg-[#F7FAF8] py-20 sm:py-24 dark:bg-[#0a0a0a]">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+        <div className="mb-14 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#DCE9E4] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#007F78] shadow-sm mb-4 dark:border-border dark:bg-surface-secondary dark:text-accent">
+            <span>Proven Impact</span>
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight text-[#163330] sm:text-4xl dark:text-foreground">
+            Growing Stronger Every Day
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-[#55706B] dark:text-muted">
+            Empowering individuals to take control of their nutrition with data-driven AI intelligence and habit tracking.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {stats.map((stat) => (
-            <AnimatedStat key={stat.label} {...stat} />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="flex flex-col items-center rounded-[1.25rem] border border-[#DCE9E4] bg-white p-6 text-center shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#007F78]/30 dark:border-border dark:bg-[#1a1a1a]"
+            >
+              <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${stat.bgClass}`}>
+                <stat.icon className={`h-7 w-7 ${stat.textClass}`} />
+              </div>
+              <span className="text-3xl font-extrabold tracking-tight text-[#163330] dark:text-foreground">
+                {stat.value}
+              </span>
+              <span className="mt-1 font-semibold text-[#163330] dark:text-foreground/90">
+                {stat.label}
+              </span>
+              <span className="mt-2 text-xs font-medium text-[#55706B] dark:text-muted">
+                {stat.badge}
+              </span>
+            </motion.div>
           ))}
         </div>
       </div>

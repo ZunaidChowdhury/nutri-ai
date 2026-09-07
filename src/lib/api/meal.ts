@@ -32,3 +32,11 @@ export async function getMealByIdPublic(
 ): Promise<MealDetailResponse> {
   return serverFetch<MealDetailResponse>(`/meals/${id}`);
 }
+
+export async function getSelectedMeals(token: string): Promise<Meal[]> {
+  const res = await serverFetch<{ success: boolean; data: Meal[] }>(
+    '/meals/selected',
+    { token }
+  );
+  return res.data;
+}

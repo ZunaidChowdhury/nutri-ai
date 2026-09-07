@@ -8,7 +8,14 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import type { Meal } from '@/lib/types/meal';
+
+interface MacroEntry {
+  macros: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+}
 
 const COLORS = {
   protein: 'hsl(var(--heroui-primary))',
@@ -16,10 +23,10 @@ const COLORS = {
   fat: 'hsl(var(--heroui-danger))',
 };
 
-function aggregateMacros(meals: Meal[]) {
-  const protein = meals.reduce((sum, m) => sum + m.macros.protein, 0);
-  const carbs = meals.reduce((sum, m) => sum + m.macros.carbs, 0);
-  const fat = meals.reduce((sum, m) => sum + m.macros.fat, 0);
+function aggregateMacros(entries: MacroEntry[]) {
+  const protein = entries.reduce((sum, e) => sum + e.macros.protein, 0);
+  const carbs = entries.reduce((sum, e) => sum + e.macros.carbs, 0);
+  const fat = entries.reduce((sum, e) => sum + e.macros.fat, 0);
 
   return [
     { name: 'Protein', value: protein, color: COLORS.protein },
@@ -29,17 +36,17 @@ function aggregateMacros(meals: Meal[]) {
 }
 
 interface MacroBreakdownChartProps {
-  meals: Meal[];
+  entries: MacroEntry[];
 }
 
-export function MacroBreakdownChart({ meals }: MacroBreakdownChartProps) {
-  const data = aggregateMacros(meals);
+export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
+  const data = aggregateMacros(entries);
 
   if (data.every((d) => d.value === 0)) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-default-400">
         <p className="text-sm">No macro data to display yet.</p>
-        <p className="text-xs mt-1">Log meals with macro information to see your breakdown.</p>
+        <p className="text-xs mt-1">Log foods with macro information to see your breakdown.</p>
       </div>
     );
   }

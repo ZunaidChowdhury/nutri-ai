@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Textarea } from "@heroui/react";
+import { Button, FieldError, Input, Label, TextArea, TextField } from "@heroui/react";
 import { useState } from "react";
 import { HiMail, HiLocationMarker } from "react-icons/hi";
 import { FaGithub, FaXTwitter, FaLinkedin } from "react-icons/fa6";
@@ -48,7 +48,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col">
-      <section className="bg-gradient-to-b from-primary-50/50 to-transparent px-4 py-20 text-center dark:from-primary-950/20 md:px-8 lg:px-16">
+      <section className="bg-gradient-to-b from-accent-soft/50 to-transparent px-4 py-20 text-center dark:from-accent-soft/20 md:px-8 lg:px-16">
         <h1 className="mb-4 text-4xl font-bold md:text-5xl">Contact Us</h1>
         <p className="mx-auto max-w-2xl text-lg text-foreground/60">
           Have a question, suggestion, or just want to say hello? We would love to hear from you.
@@ -67,7 +67,7 @@ export default function ContactPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <HiMail className="size-5 text-primary" />
+              <HiMail className="size-5 text-accent" />
               <Link
                 href="mailto:hello@nutriai.app"
                 className="text-foreground/70 hover:text-foreground transition-colors"
@@ -77,7 +77,7 @@ export default function ContactPage() {
             </div>
 
             <div className="flex items-start gap-3">
-              <HiLocationMarker className="size-5 shrink-0 mt-0.5 text-primary" />
+              <HiLocationMarker className="size-5 shrink-0 mt-0.5 text-accent" />
               <span className="text-foreground/70">
                 San Francisco, CA
               </span>
@@ -106,19 +106,18 @@ export default function ContactPage() {
           {/* Form */}
           <div className="lg:col-span-2">
             {submitted ? (
-              <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-success/30 bg-success-50 px-8 py-16 text-center dark:bg-success-950/20">
+              <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-success/30 bg-success-soft px-8 py-16 text-center dark:bg-success-soft">
                 <div className="flex size-16 items-center justify-center rounded-full bg-success/10">
                   <HiMail className="size-8 text-success" />
                 </div>
-                <h3 className="text-2xl font-bold text-success-600 dark:text-success-400">
+                <h3 className="text-2xl font-bold text-success dark:text-success">
                   Message Sent!
                 </h3>
                 <p className="max-w-md text-foreground/60">
                   Thank you for reaching out. We have received your message and will get back to you shortly.
                 </p>
                 <Button
-                  variant="flat"
-                  color="primary"
+                  variant="primary"
                   onPress={() => {
                     setSubmitted(false);
                     setName("");
@@ -134,42 +133,62 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Input
-                    label="Name"
-                    value={name}
-                    onValueChange={setName}
+                  <TextField
                     isInvalid={!!errors.name}
-                    errorMessage={errors.name}
                     isRequired
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onValueChange={setEmail}
+                    className="w-full"
+                  >
+                    <Label>Name</Label>
+                    <Input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      fullWidth
+                    />
+                    {errors.name && <FieldError>{errors.name}</FieldError>}
+                  </TextField>
+                  <TextField
                     isInvalid={!!errors.email}
-                    errorMessage={errors.email}
                     isRequired
-                  />
+                    className="w-full"
+                  >
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      fullWidth
+                    />
+                    {errors.email && <FieldError>{errors.email}</FieldError>}
+                  </TextField>
                 </div>
-                <Input
-                  label="Subject"
-                  value={subject}
-                  onValueChange={setSubject}
+                <TextField
                   isInvalid={!!errors.subject}
-                  errorMessage={errors.subject}
                   isRequired
-                />
-                <Textarea
-                  label="Message"
-                  value={message}
-                  onValueChange={setMessage}
+                  className="w-full"
+                >
+                  <Label>Subject</Label>
+                  <Input
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    fullWidth
+                  />
+                  {errors.subject && <FieldError>{errors.subject}</FieldError>}
+                </TextField>
+                <TextField
                   isInvalid={!!errors.message}
-                  errorMessage={errors.message}
-                  minRows={4}
                   isRequired
-                />
-                <Button type="submit" color="primary" size="lg" className="self-start">
+                  className="w-full"
+                >
+                  <Label>Message</Label>
+                  <TextArea
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    fullWidth
+                  />
+                  {errors.message && <FieldError>{errors.message}</FieldError>}
+                </TextField>
+                <Button type="submit" variant="primary" size="lg" className="self-start">
                   Send Message
                 </Button>
               </form>

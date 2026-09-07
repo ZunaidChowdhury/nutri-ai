@@ -1,17 +1,26 @@
-import { serverMutation } from '@/lib/core/server';
-import type { MealPlanResponse } from '@/lib/types/mealplan';
+import { serverFetch, serverMutation } from '@/lib/core/server';
+import type { MealPlan, MealPlanResponse } from '@/lib/types/mealplan';
 
 export async function generateMealPlan(
   goal: string,
   restrictions: string[],
   budget: string,
   calorieTarget: number,
+  source: 'random' | 'selected',
   token: string
 ): Promise<MealPlanResponse['data']> {
   const res = await serverMutation<MealPlanResponse>('/agents/meal-planning', {
     method: 'POST',
-    body: { goal, restrictions, budget, calorieTarget },
+    body: { goal, restrictions, budget, calorieTarget, source },
     token,
   });
+  return res.data;
+}
+
+export async function getMyMealPlan(token: string): Promise<MealPlan | null> {
+  const res = await serverFetch<{ success: boolean; data: MealPlan | null }>(
+    '/meals/plan',
+    { token }
+  );
   return res.data;
 }

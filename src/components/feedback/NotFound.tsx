@@ -1,14 +1,13 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/card';
-import { Button } from '@heroui/button';
+import { Card, Button } from '@heroui/react';
 import Link from 'next/link';
 
 export function NotFound() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <Card className="w-full max-w-md border border-default-200 dark:border-default-100">
-        <CardBody className="flex flex-col items-center gap-4 py-12 px-8">
+      <Card className="w-full max-w-md border border-border">
+        <Card.Content className="flex flex-col items-center gap-4 py-12 px-8">
           <div className="w-12 h-12 rounded-full bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -29,18 +28,15 @@ export function NotFound() {
             </svg>
           </div>
           <h3 className="text-lg font-semibold">Page not found</h3>
-          <p className="text-sm text-default-500 text-center max-w-xs">
+          <p className="text-sm text-muted text-center max-w-xs">
             The page you are looking for does not exist or has been moved.
           </p>
           <Link href="/">
-            <Button
-              color="primary"
-              variant="flat"
-            >
+            <Button variant="primary">
               Go home
             </Button>
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

@@ -13,7 +13,14 @@ export interface Meal {
   };
   cuisineTag: string;
   rating: number;
+  visibility: 'public' | 'private';
+  lockedVisibility: boolean;
   createdAt: string;
+  owner?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface MealsResponse {

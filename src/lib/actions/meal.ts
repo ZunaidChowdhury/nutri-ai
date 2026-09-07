@@ -17,6 +17,7 @@ interface MealInput {
   };
   cuisineTag: string;
   rating?: number;
+  visibility?: 'public' | 'private';
 }
 
 interface MealResponse {
@@ -46,6 +47,53 @@ export async function deleteMeal(
   token: string
 ): Promise<void> {
   await serverMutation<DeleteResponse>(`/meals/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export async function updateMeal(
+  id: string,
+  data: MealInput,
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/${id}`, {
+    method: 'PATCH',
+    body: data,
+    token,
+  });
+  return response.data;
+}
+
+export async function updateMealVisibility(
+  id: string,
+  visibility: 'public' | 'private',
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/${id}/visibility`, {
+    method: 'PATCH',
+    body: { visibility },
+    token,
+  });
+  return response.data;
+}
+
+export async function addSelectedMeal(
+  mealId: string,
+  token: string
+): Promise<Meal> {
+  const response = await serverMutation<MealResponse>(`/meals/selected/${mealId}`, {
+    method: 'POST',
+    token,
+  });
+  return response.data;
+}
+
+export async function removeSelectedMeal(
+  mealId: string,
+  token: string
+): Promise<void> {
+  await serverMutation<DeleteResponse>(`/meals/selected/${mealId}`, {
     method: 'DELETE',
     token,
   });

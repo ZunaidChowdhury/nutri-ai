@@ -23,6 +23,7 @@ export interface MealPlan {
     restrictions: string[];
     budget: 'low' | 'medium' | 'high';
     calorieTarget: number;
+    source?: 'random' | 'selected';
   };
   days: MealPlanDay[];
   createdAt?: string;

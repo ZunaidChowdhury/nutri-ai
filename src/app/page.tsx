@@ -1,6 +1,10 @@
 import HeroSection from "@/components/landing/HeroSection";
-import FeaturedMealsSection from "@/components/landing/FeaturedMealsSection";
+import BentoFeaturesSection from "@/components/landing/BentoFeaturesSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import AgentSpotlightSection from "@/components/landing/AgentSpotlightSection";
+import AgentPipelineSection from "@/components/landing/AgentPipelineSection";
+import FeaturedMealsSection from "@/components/landing/FeaturedMealsSection";
+import ComparisonSection from "@/components/landing/ComparisonSection";
 import StatsSection from "@/components/landing/StatsSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FAQSection from "@/components/landing/FAQSection";
@@ -11,8 +15,12 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <FeaturedMealsSection />
+      <BentoFeaturesSection />
+      <HowItWorksSection />
       <AgentSpotlightSection />
+      <AgentPipelineSection />
+      <FeaturedMealsSection />
+      <ComparisonSection />
       <StatsSection />
       <TestimonialsSection />
       <FAQSection />

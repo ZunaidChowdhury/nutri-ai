@@ -1,53 +1,68 @@
 "use client";
 
-import { Card, CardBody, CardHeader } from "@heroui/react";
-import { HiSparkles, HiChartBar, HiTag } from "react-icons/hi";
+import { motion } from "framer-motion";
+import { HiSparkles, HiLightningBolt, HiChartPie } from "react-icons/hi";
 
 const agents = [
   {
     icon: HiSparkles,
-    title: "Meal Planning Agent",
+    title: "AI Meal Planner",
     description:
-      "Creates personalized 7-day meal plans based on your goals, dietary restrictions, budget, and calorie targets using AI-powered optimization.",
+      "Creates personalized 7-day meal plans based on your goals, dietary restrictions, budget, and calorie targets using advanced optimization.",
+    bgClass: "bg-[#DDF5F0] dark:bg-accent/20",
+    textClass: "text-[#007F78] dark:text-accent",
   },
   {
-    icon: HiChartBar,
-    title: "Nutrition Analysis Agent",
+    icon: HiLightningBolt,
+    title: "Meal Analyzer",
     description:
-      "Analyzes your weekly eating patterns, identifies nutritional deficiencies, and provides actionable recommendations for a balanced diet.",
+      "Analyzes your weekly eating patterns, identifies nutritional gaps, and provides actionable recommendations for a balanced diet.",
+    bgClass: "bg-[#EAF7DE] dark:bg-[#65B82E]/20",
+    textClass: "text-[#65B82E] dark:text-[#65B82E]",
   },
   {
-    icon: HiTag,
-    title: "Food Classification Agent",
+    icon: HiChartPie,
+    title: "Nutrition Insights",
     description:
-      "Automatically classifies meals by cuisine type with confidence scoring, helping you organize and discover patterns in your eating habits.",
+      "Automatically classifies meals and extracts deep insights with confidence scoring, helping you organize and discover patterns in your habits.",
+    bgClass: "bg-[#FFFBEB] dark:bg-[#F59E0B]/20",
+    textClass: "text-[#F59E0B] dark:text-[#F59E0B]",
   },
 ];
 
 export default function AgentSpotlightSection() {
   return (
-    <section className="bg-default-50 px-4 py-16 md:px-8 lg:px-16">
-      <div className="mx-auto max-w-7xl">
-        <h2 className="mb-2 text-center text-3xl font-bold">
-          AI-Powered Agents
-        </h2>
-        <p className="mb-10 text-center text-foreground/60">
-          Three specialized agents working together to optimize your nutrition
-        </p>
+    <section className="w-full bg-[#EEF7F3] px-4 py-20 sm:py-24 md:px-8 lg:px-8 dark:bg-[#0a0a0a]">
+      <div className="mx-auto max-w-[1280px]">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-[#163330] sm:text-4xl dark:text-foreground">
+            The Intelligence Behind Nutri AI
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-[#55706B] dark:text-muted">
+            Three specialized agents working together to optimize your nutrition, save you time, and keep you on track.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {agents.map((agent) => (
-            <Card key={agent.title} className="border border-default-200">
-              <CardHeader className="flex-col items-center gap-3 pb-0 pt-8">
-                <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <agent.icon className="size-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">{agent.title}</h3>
-              </CardHeader>
-              <CardBody className="px-6 pb-8 pt-4 text-center text-foreground/60">
+          {agents.map((agent, index) => (
+            <motion.div
+              key={agent.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
+              className="group flex flex-col items-center rounded-[1.25rem] border border-[#DCE9E4] bg-white p-8 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-border dark:bg-[#1a1a1a]"
+            >
+              <div className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${agent.bgClass}`}>
+                <agent.icon className={`h-8 w-8 ${agent.textClass}`} />
+              </div>
+              <h3 className="mb-4 text-xl font-bold text-[#163330] dark:text-foreground">
+                {agent.title}
+              </h3>
+              <p className="text-base leading-relaxed text-[#55706B] dark:text-muted">
                 {agent.description}
-              </CardBody>
-            </Card>
+              </p>
+            </motion.div>
           ))}
         </div>
       </div>

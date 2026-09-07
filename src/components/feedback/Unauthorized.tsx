@@ -9,7 +9,7 @@ export default function Unauthorized() {
           <FiLock className="h-8 w-8 text-warning-500" />
         </div>
         <h2 className="mb-2 text-xl font-bold">Unauthorized</h2>
-        <p className="mb-4 text-default-500">
+        <p className="mb-4 text-muted">
           You need to sign in to access this page. Please log in and try again.
         </p>
       </Card>

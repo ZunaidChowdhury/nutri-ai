@@ -9,7 +9,7 @@ export default function Forbidden() {
           <FiShieldOff className="h-8 w-8 text-danger-500" />
         </div>
         <h2 className="mb-2 text-xl font-bold">Forbidden</h2>
-        <p className="mb-4 text-default-500">
+        <p className="mb-4 text-muted">
           You don&apos;t have permission to access this resource. Contact an
           administrator if you believe this is a mistake.
         </p>
