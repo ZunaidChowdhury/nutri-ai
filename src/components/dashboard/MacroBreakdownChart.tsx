@@ -18,9 +18,9 @@ interface MacroEntry {
 }
 
 const COLORS = {
-  protein: 'hsl(var(--heroui-primary))',
-  carbs: 'hsl(var(--heroui-warning))',
-  fat: 'hsl(var(--heroui-danger))',
+  protein: '#007F78',
+  carbs: '#F59E0B',
+  fat: '#EF4444',
 };
 
 function aggregateMacros(entries: MacroEntry[]) {
@@ -44,7 +44,7 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
 
   if (data.every((d) => d.value === 0)) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-default-400">
+      <div className="flex flex-col items-center justify-center py-12 text-[#849A95]">
         <p className="text-sm">No macro data to display yet.</p>
         <p className="text-xs mt-1">Log foods with macro information to see your breakdown.</p>
       </div>
@@ -74,14 +74,15 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
             <Tooltip
               formatter={(value: number) => `${value}g (${Math.round((value / total) * 100)}%)`}
               contentStyle={{
-                borderRadius: '8px',
-                border: '1px solid hsl(var(--heroui-default-200))',
-                background: 'hsl(var(--heroui-background))',
+                borderRadius: '12px',
+                border: '1px solid #DCE9E4',
+                background: '#FFFFFF',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
               }}
             />
             <Legend
               formatter={(value: string) => (
-                <span className="text-sm text-default-600 dark:text-default-400">{value}</span>
+                <span className="text-sm text-[#55706B]">{value}</span>
               )}
             />
           </PieChart>
@@ -91,7 +92,7 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
         {data.map((d) => (
           <div key={d.name} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full" style={{ background: d.color }} />
-            <span className="text-default-500">
+            <span className="text-[#55706B]">
               {d.name}: {d.value}g
             </span>
           </div>

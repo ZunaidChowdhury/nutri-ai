@@ -6,14 +6,14 @@ import type { MealPlanDay } from '@/lib/types/mealplan';
 function MacroBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-muted w-14">{label}</span>
-      <div className="flex-1 h-2 rounded-full bg-surface-secondary dark:bg-surface-secondary">
+      <span className="text-xs font-medium text-[#849A95] w-14">{label}</span>
+      <div className="flex-1 h-2 rounded-full bg-[#EEF7F3]">
         <div
           className={`h-2 rounded-full ${color}`}
           style={{ width: `${Math.min(value / 3, 100)}%` }}
         />
       </div>
-      <span className="text-xs font-semibold w-10 text-right">{value}g</span>
+      <span className="text-xs font-semibold w-10 text-right text-[#163330]">{value}g</span>
     </div>
   );
 }
@@ -25,15 +25,15 @@ interface DayCardProps {
 
 export function DayCard({ day, dateLabel }: DayCardProps) {
   return (
-    <Card className="border border-border dark:border-border">
+    <Card className="rounded-2xl border border-[#DCE9E4] shadow-sm">
       <Card.Header className="pb-2 pt-4 px-5">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft dark:bg-accent-soft text-accent font-bold text-sm">
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#DDF5F0] text-[#007F78] font-bold text-sm">
             {day.day}
           </div>
           <div className="flex flex-col">
-            <h3 className="text-lg font-semibold">Day {day.day}</h3>
-            {dateLabel && <span className="text-xs text-muted">{dateLabel}</span>}
+            <h3 className="text-lg font-semibold text-[#163330]">Day {day.day}</h3>
+            {dateLabel && <span className="text-xs text-[#849A95]">{dateLabel}</span>}
           </div>
         </div>
       </Card.Header>
@@ -44,8 +44,8 @@ export function DayCard({ day, dateLabel }: DayCardProps) {
               <Accordion.Heading>
                 <Accordion.Trigger>
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="font-medium">{meal.name}</span>
-                    <Chip size="sm" variant="soft" color="accent">
+                    <span className="font-medium text-[#163330]">{meal.name}</span>
+                    <Chip size="sm" className="bg-[#DDF5F0] text-[#007F78] border-none font-medium">
                       {meal.calories} cal
                     </Chip>
                   </div>
@@ -55,20 +55,20 @@ export function DayCard({ day, dateLabel }: DayCardProps) {
                 <Accordion.Body>
                   <div className="flex flex-col gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <MacroBar label="Protein" value={meal.macros.protein} color="bg-danger" />
-                      <MacroBar label="Carbs" value={meal.macros.carbs} color="bg-warning" />
-                      <MacroBar label="Fat" value={meal.macros.fat} color="bg-accent" />
+                      <MacroBar label="Protein" value={meal.macros.protein} color="bg-[#007F78]" />
+                      <MacroBar label="Carbs" value={meal.macros.carbs} color="bg-[#F59E0B]" />
+                      <MacroBar label="Fat" value={meal.macros.fat} color="bg-[#EF4444]" />
                     </div>
 
-                    <Separator />
+                    <Separator className="bg-[#DCE9E4]" />
 
                     <div>
-                      <h4 className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
+                      <h4 className="text-xs font-semibold text-[#849A95] uppercase tracking-wide mb-1.5">
                         Ingredients
                       </h4>
                       <ul className="flex flex-wrap gap-1.5">
                         {meal.ingredients.map((ing, j) => (
-                          <Chip key={j} size="sm" variant="soft" color="default">
+                          <Chip key={j} size="sm" className="bg-[#EEF7F3] text-[#163330] border border-[#DCE9E4]">
                             {ing}
                           </Chip>
                         ))}
@@ -76,10 +76,10 @@ export function DayCard({ day, dateLabel }: DayCardProps) {
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
+                      <h4 className="text-xs font-semibold text-[#849A95] uppercase tracking-wide mb-1.5">
                         Instructions
                       </h4>
-                      <p className="text-sm text-default dark:text-muted leading-relaxed">
+                      <p className="text-sm text-[#55706B] leading-relaxed">
                         {meal.instructions}
                       </p>
                     </div>
