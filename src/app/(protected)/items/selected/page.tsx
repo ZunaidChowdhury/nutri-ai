@@ -101,10 +101,10 @@ export default function SelectedMealsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#163330]">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#163330] dark:text-[#E8F2EF]">
             Selected Meals
           </h1>
-          <p className="text-[#55706B]">
+          <p className="text-[#55706B] dark:text-[#A1B8B3]">
             {selectedMeals.length} meal{selectedMeals.length !== 1 ? 's' : ''} in your collection
             {canPlan ? ' • Ready for AI meal planning' : ' • Select at least 10 to generate an AI plan'}
           </p>
@@ -112,7 +112,7 @@ export default function SelectedMealsPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           <Link href="/meals" className="!no-underline">
-            <button className="flex items-center gap-1.5 border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3] px-3.5 py-2 rounded-xl transition-colors font-medium text-sm">
+            <button className="flex items-center gap-1.5 border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28] px-3.5 py-2 rounded-xl transition-colors font-medium text-sm">
               <FiPlus size={16} />
               Browse Meals
             </button>
@@ -123,7 +123,7 @@ export default function SelectedMealsPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors font-medium text-sm ${
                 canPlan
                   ? 'bg-[#007F78] hover:bg-[#005F5A] text-white'
-                  : 'bg-[#EEF7F3] text-[#55706B] hover:bg-[#DDF5F0]'
+                  : 'bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#DDF5F0] dark:hover:bg-[#007F78]/20'
               }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -157,20 +157,20 @@ export default function SelectedMealsPage() {
       ) : (
         <>
           {/* AI Meal Plan Readiness Callout */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#EEF7F3] border border-[#DCE9E4] flex-wrap gap-3">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#EEF7F3] dark:bg-[#1b2b28] border border-[#DCE9E4] dark:border-[#263835] flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#DDF5F0] flex items-center justify-center text-[#007F78] flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[#DDF5F0] dark:bg-[#007F78]/25 flex items-center justify-center text-[#007F78] dark:text-[#2DD4BF] flex-shrink-0">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#163330]">
+                <p className="text-sm font-semibold text-[#163330] dark:text-[#E8F2EF]">
                   {canPlan
                     ? `Ready to generate! You have ${selectedMeals.length} selected meals.`
                     : `Select ${10 - selectedMeals.length} more meal${10 - selectedMeals.length === 1 ? '' : 's'} to unlock AI meal planning from this list.`}
                 </p>
-                <p className="text-xs text-[#55706B]">
+                <p className="text-xs text-[#55706B] dark:text-[#A1B8B3]">
                   {canPlan
                     ? 'The AI can now create a tailored 7-day plan exclusively from your chosen items.'
                     : 'The AI meal planner requires at least 10 meals to build a healthy, balanced weekly variety.'}
@@ -186,7 +186,7 @@ export default function SelectedMealsPage() {
               </Link>
             ) : (
               <Link href="/meals" className="!no-underline">
-                <button className="px-4 py-2 rounded-xl bg-white border border-[#DCE9E4] text-[#007F78] hover:bg-[#DDF5F0] text-xs font-semibold transition-colors">
+                <button className="px-4 py-2 rounded-xl bg-white dark:bg-[#161f1e] border border-[#DCE9E4] dark:border-[#263835] text-[#007F78] dark:text-[#2DD4BF] hover:bg-[#DDF5F0] dark:hover:bg-[#007F78]/20 text-xs font-semibold transition-colors">
                   Explore More
                 </button>
               </Link>
@@ -194,14 +194,14 @@ export default function SelectedMealsPage() {
           </div>
 
           {/* Filter Bar (matching /items/manage) */}
-          <div className="bg-white rounded-2xl border border-[#DCE9E4] p-4 flex flex-col gap-3 lg:flex-row lg:items-end w-full">
+          <div className="bg-white dark:bg-[#161f1e] rounded-2xl border border-[#DCE9E4] dark:border-[#263835] p-4 flex flex-col gap-3 lg:flex-row lg:items-end w-full">
             {/* Search */}
             <div className="w-full lg:max-w-sm">
               <TextField className="w-full" fullWidth>
                 <Label>Search</Label>
                 <div className="relative w-full">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849A95] pointer-events-none z-10"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#849A95] dark:text-[#6E8883] pointer-events-none z-10"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -214,7 +214,7 @@ export default function SelectedMealsPage() {
                     aria-label="Search selected meals"
                     value={search}
                     onChange={(e) => handleFilterChange(setSearch)(e.target.value)}
-                    className="pl-9 placeholder:text-[#849A95]"
+                    className="pl-9 placeholder:text-[#849A95] dark:placeholder:text-[#6E8883]"
                   />
                 </div>
               </TextField>
@@ -279,21 +279,21 @@ export default function SelectedMealsPage() {
                   variant="secondary"
                   size="sm"
                   onPress={clearFilters}
-                  className="bg-transparent border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3]"
+                  className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
                 >
                   Clear filters
                 </Button>
               )}
 
               {/* View switch (desktop) */}
-              <div className="hidden md:flex items-center rounded-xl border border-[#DCE9E4] p-0.5 bg-[#F7FAF8]">
+              <div className="hidden md:flex items-center rounded-xl border border-[#DCE9E4] dark:border-[#263835] p-0.5 bg-[#F7FAF8] dark:bg-[#121918]">
                 <button
                   type="button"
                   onClick={() => setViewMode('table')}
                   className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
                     viewMode === 'table'
-                      ? 'bg-white text-[#007F78] shadow-sm font-semibold'
-                      : 'text-[#55706B] hover:text-[#163330]'
+                      ? 'bg-white dark:bg-[#1b2b28] text-[#007F78] dark:text-[#2DD4BF] shadow-sm font-semibold'
+                      : 'text-[#55706B] dark:text-[#A1B8B3] hover:text-[#163330] dark:hover:text-[#E8F2EF]'
                   }`}
                   aria-label="Table view"
                 >
@@ -304,8 +304,8 @@ export default function SelectedMealsPage() {
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
                     viewMode === 'grid'
-                      ? 'bg-white text-[#007F78] shadow-sm font-semibold'
-                      : 'text-[#55706B] hover:text-[#163330]'
+                      ? 'bg-white dark:bg-[#1b2b28] text-[#007F78] dark:text-[#2DD4BF] shadow-sm font-semibold'
+                      : 'text-[#55706B] dark:text-[#A1B8B3] hover:text-[#163330] dark:hover:text-[#E8F2EF]'
                   }`}
                   aria-label="Card grid view"
                 >
@@ -325,7 +325,7 @@ export default function SelectedMealsPage() {
                   <Button
                     variant="secondary"
                     onPress={clearFilters}
-                    className="bg-transparent border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3]"
+                    className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
                   >
                     Clear filters
                   </Button>
@@ -337,49 +337,49 @@ export default function SelectedMealsPage() {
               {/* Desktop Table View */}
               {viewMode === 'table' ? (
                 <div className="hidden md:block">
-                  <Table className="rounded-2xl border border-[#DCE9E4]">
+                  <Table className="rounded-2xl border border-[#DCE9E4] dark:border-[#263835] dark:bg-[#161f1e]">
                     <Table.ScrollContainer>
                       <Table.Content aria-label="Selected meals table" className="min-w-[600px]">
                         <Table.Header>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               IMAGE
                             </span>
                           </Table.Column>
                           <Table.Column isRowHeader>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               TITLE
                             </span>
                           </Table.Column>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               CUISINE
                             </span>
                           </Table.Column>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               CALORIES
                             </span>
                           </Table.Column>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               MACROS (P / C / F)
                             </span>
                           </Table.Column>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               RATING
                             </span>
                           </Table.Column>
                           <Table.Column>
-                            <span className="text-[#849A95] text-xs font-semibold uppercase tracking-wide">
+                            <span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">
                               ACTIONS
                             </span>
                           </Table.Column>
                         </Table.Header>
                         <Table.Body>
                           {pageItems.map((meal) => (
-                            <Table.Row key={meal._id} id={meal._id} className="hover:bg-[#F7FAF8] transition-colors">
+                            <Table.Row key={meal._id} id={meal._id} className="hover:bg-[#F7FAF8] dark:hover:bg-[#1b2b28] transition-colors">
                               <Table.Cell>
                                 <img
                                   src={meal.imageUrl || '/placeholder-meal.svg'}
@@ -390,31 +390,31 @@ export default function SelectedMealsPage() {
                                   }}
                                 />
                               </Table.Cell>
-                              <Table.Cell className="font-medium text-[#163330]">
+                              <Table.Cell className="font-medium text-[#163330] dark:text-[#E8F2EF]">
                                 {meal.title}
                               </Table.Cell>
                               <Table.Cell>
-                                <Chip size="sm" className="bg-[#EEF7F3] text-[#163330] border border-[#DCE9E4]">
+                                <Chip size="sm" className="bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#163330] dark:text-[#E8F2EF] border border-[#DCE9E4] dark:border-[#263835]">
                                   {meal.cuisineTag}
                                 </Chip>
                               </Table.Cell>
-                              <Table.Cell className="font-semibold text-[#163330]">
+                              <Table.Cell className="font-semibold text-[#163330] dark:text-[#E8F2EF]">
                                 {meal.calories}
                               </Table.Cell>
                               <Table.Cell>
                                 <div className="flex items-center gap-1.5 text-xs">
-                                  <span className="px-1.5 py-0.5 rounded bg-[#DDF5F0] text-[#007F78] font-medium">
+                                  <span className="px-1.5 py-0.5 rounded bg-[#DDF5F0] dark:bg-[#007F78]/25 text-[#007F78] dark:text-[#2DD4BF] font-medium">
                                     {meal.macros?.protein ?? 0}g
                                   </span>
-                                  <span className="px-1.5 py-0.5 rounded bg-[#FEF3C7] text-[#92400E] font-medium">
+                                  <span className="px-1.5 py-0.5 rounded bg-[#FEF3C7] dark:bg-[#F59E0B]/20 text-[#92400E] dark:text-[#FCD34D] font-medium">
                                     {meal.macros?.carbs ?? 0}g
                                   </span>
-                                  <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium">
+                                  <span className="px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-medium">
                                     {meal.macros?.fat ?? 0}g
                                   </span>
                                 </div>
                               </Table.Cell>
-                              <Table.Cell className="text-[#163330]">
+                              <Table.Cell className="text-[#163330] dark:text-[#E8F2EF]">
                                 ⭐ {meal.rating?.toFixed(1) ?? '4.5'}
                               </Table.Cell>
                               <Table.Cell>
@@ -422,7 +422,7 @@ export default function SelectedMealsPage() {
                                   <Link href={`/meals/${meal._id}`} className="!no-underline">
                                     <Button
                                       size="sm"
-                                      className="bg-transparent border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3]"
+                                      className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
                                     >
                                       View
                                     </Button>
@@ -430,7 +430,7 @@ export default function SelectedMealsPage() {
                                   <Button
                                     size="sm"
                                     onPress={() => toggleMeal(meal)}
-                                    className="bg-transparent border border-red-200 text-red-500 hover:bg-red-50"
+                                    className="bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                                   >
                                     Remove
                                   </Button>
@@ -455,14 +455,14 @@ export default function SelectedMealsPage() {
                       />
                       <div className="flex gap-2">
                         <Link href={`/meals/${meal._id}`} className="flex-1 !no-underline">
-                          <Button size="sm" className="w-full bg-transparent border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3]">
+                          <Button size="sm" className="w-full bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                             View
                           </Button>
                         </Link>
                         <Button
                           size="sm"
                           onPress={() => toggleMeal(meal)}
-                          className="flex-1 bg-transparent border border-red-200 text-red-500 hover:bg-red-50"
+                          className="flex-1 bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
                           Remove
                         </Button>
@@ -483,14 +483,14 @@ export default function SelectedMealsPage() {
                     />
                     <div className="flex gap-2">
                       <Link href={`/meals/${meal._id}`} className="flex-1 !no-underline">
-                        <Button size="sm" className="w-full bg-transparent border border-[#DCE9E4] text-[#55706B] hover:bg-[#EEF7F3]">
+                        <Button size="sm" className="w-full bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                           View
                         </Button>
                       </Link>
                       <Button
                         size="sm"
                         onPress={() => toggleMeal(meal)}
-                        className="flex-1 bg-transparent border border-red-200 text-red-500 hover:bg-red-50"
+                        className="flex-1 bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                       >
                         Remove
                       </Button>

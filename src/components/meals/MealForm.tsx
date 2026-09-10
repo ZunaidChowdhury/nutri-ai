@@ -216,7 +216,7 @@ export function MealForm({ mode, meal }: MealFormProps) {
         {/* Back Link */}
         <Link
           href="/items/manage"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#55706B] hover:text-[#007F78] transition-colors !no-underline w-fit"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#55706B] dark:text-[#A1B8B3] hover:text-[#007F78] dark:hover:text-[#2DD4BF] transition-colors !no-underline w-fit"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -226,10 +226,10 @@ export function MealForm({ mode, meal }: MealFormProps) {
 
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#163330]">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#163330] dark:text-[#E8F2EF]">
             {isEdit ? 'Edit Meal' : 'Add Meal'}
           </h1>
-          <p className="text-[#55706B]">
+          <p className="text-[#55706B] dark:text-[#A1B8B3]">
             {isEdit
               ? 'Update the details and nutrition profile of your meal.'
               : 'Share your nutritious creation with the community.'}
@@ -237,12 +237,12 @@ export function MealForm({ mode, meal }: MealFormProps) {
         </div>
 
         {/* Form Card */}
-        <div className="rounded-2xl border border-[#DCE9E4] bg-white overflow-hidden shadow-sm">
+        <div className="rounded-2xl border border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e] overflow-hidden shadow-sm">
           {/* Accent bar */}
           <div className="h-1 bg-gradient-to-r from-[#007F78] to-[#65B82E]" />
 
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-[#163330] mb-5">Meal Details</h2>
+            <h2 className="text-lg font-semibold text-[#163330] dark:text-[#E8F2EF] mb-5">Meal Details</h2>
 
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
               {/* Title */}
@@ -341,11 +341,11 @@ export function MealForm({ mode, meal }: MealFormProps) {
                   classification &&
                   !userOverrodeCuisine &&
                   form.cuisineTag === classification.cuisineTag && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#DDF5F0] border border-[#007F78]/20">
-                      <svg className="w-4 h-4 text-[#007F78] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#DDF5F0] dark:bg-[#007F78]/25 border border-[#007F78]/20 dark:border-[#007F78]/40">
+                      <svg className="w-4 h-4 text-[#007F78] dark:text-[#2DD4BF] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      <span className="text-xs text-[#007F78]">AI suggested</span>
+                      <span className="text-xs text-[#007F78] dark:text-[#2DD4BF]">AI suggested</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#007F78] text-white">
                         {Math.round(classification.confidence * 100)}% confidence
                       </span>
@@ -375,7 +375,7 @@ export function MealForm({ mode, meal }: MealFormProps) {
                       <ListBox.Item id="public" textValue="Public">
                         <div className="flex flex-col">
                           <span>Public</span>
-                          <span className="text-xs text-[#849A95]">
+                          <span className="text-xs text-[#849A95] dark:text-[#6E8883]">
                             Visible to everyone on the Explore page
                           </span>
                         </div>
@@ -383,7 +383,7 @@ export function MealForm({ mode, meal }: MealFormProps) {
                       <ListBox.Item id="private" textValue="Private">
                         <div className="flex flex-col">
                           <span>Private</span>
-                          <span className="text-xs text-[#849A95]">
+                          <span className="text-xs text-[#849A95] dark:text-[#6E8883]">
                             Only visible to you
                           </span>
                         </div>
@@ -392,11 +392,11 @@ export function MealForm({ mode, meal }: MealFormProps) {
                   </Select.Popover>
                 </Select>
                 {isEdit && meal?.lockedVisibility && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FEF3C7] border border-[#FDE68A]">
-                    <svg className="w-4 h-4 text-[#92400E] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FEF3C7] dark:bg-[#F59E0B]/20 border border-[#FDE68A] dark:border-[#F59E0B]/30">
+                    <svg className="w-4 h-4 text-[#92400E] dark:text-[#FCD34D] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <p className="text-sm text-[#92400E]">
+                    <p className="text-sm text-[#92400E] dark:text-[#FCD34D]">
                       Visibility is locked by an admin and cannot be changed here.
                     </p>
                   </div>
@@ -405,7 +405,7 @@ export function MealForm({ mode, meal }: MealFormProps) {
 
               {/* Nutrition — Macros */}
               <div className="flex flex-col gap-3">
-                <h3 className="text-sm font-semibold text-[#163330] flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[#163330] dark:text-[#E8F2EF] flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
                   </svg>
@@ -473,30 +473,30 @@ export function MealForm({ mode, meal }: MealFormProps) {
 
               {/* Image Upload */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-[#163330]">
-                  Meal Image <span className="text-[#849A95] text-sm">(optional)</span>
+                <label className="text-sm font-medium text-[#163330] dark:text-[#E8F2EF]">
+                  Meal Image <span className="text-[#849A95] dark:text-[#6E8883] text-sm">(optional)</span>
                 </label>
                 {imageUrl ? (
-                  <div className="flex items-center gap-4 p-4 rounded-xl border border-[#DCE9E4] bg-[#EEF7F3]">
+                  <div className="flex items-center gap-4 p-4 rounded-xl border border-[#DCE9E4] dark:border-[#263835] bg-[#EEF7F3] dark:bg-[#1b2b28]">
                     <img
                       src={imageUrl}
                       alt="Uploaded meal"
                       className="w-20 h-20 object-cover rounded-xl"
                     />
                     <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#163330]">Image uploaded</p>
-                      <p className="text-xs text-[#849A95] truncate">{imageUrl.split('/').pop()}</p>
+                      <p className="text-sm font-medium text-[#163330] dark:text-[#E8F2EF]">Image uploaded</p>
+                      <p className="text-xs text-[#849A95] dark:text-[#6E8883] truncate">{imageUrl.split('/').pop()}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setImageUrl('')}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-red-500 border border-red-200 dark:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                     >
                       Remove
                     </button>
                   </div>
                 ) : (
-                  <div className="p-6 rounded-xl border-2 border-dashed border-[#DCE9E4] bg-[#F7FAF8] hover:bg-[#EEF7F3] transition-colors">
+                  <div className="p-6 rounded-xl border-2 border-dashed border-[#DCE9E4] dark:border-[#263835] bg-[#F7FAF8] dark:bg-[#1b2b28] hover:bg-[#EEF7F3] dark:hover:bg-[#203330] transition-colors">
                     <UploadButton<OurFileRouter, 'mealImage'>
                       endpoint="mealImage"
                       onClientUploadComplete={(res) => {
@@ -517,11 +517,11 @@ export function MealForm({ mode, meal }: MealFormProps) {
 
               {/* Server Error */}
               {serverError && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
-                  <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
+                  <svg className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-red-600">{serverError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{serverError}</p>
                 </div>
               )}
 

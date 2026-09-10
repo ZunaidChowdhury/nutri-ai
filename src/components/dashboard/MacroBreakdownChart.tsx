@@ -44,7 +44,7 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
 
   if (data.every((d) => d.value === 0)) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-[#849A95]">
+      <div className="flex flex-col items-center justify-center py-12 text-[#849A95] dark:text-[#6E8883]">
         <p className="text-sm">No macro data to display yet.</p>
         <p className="text-xs mt-1">Log foods with macro information to see your breakdown.</p>
       </div>
@@ -72,17 +72,25 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => `${value}g (${Math.round((value / total) * 100)}%)`}
-              contentStyle={{
-                borderRadius: '12px',
-                border: '1px solid #DCE9E4',
-                background: '#FFFFFF',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const entry = payload[0];
+                  const val = Number(entry.value);
+                  return (
+                    <div className="rounded-xl border border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e] p-3 shadow-lg">
+                      <p className="text-xs font-semibold text-[#163330] dark:text-[#E8F2EF] mb-0.5">{entry.name}</p>
+                      <p className="text-sm font-bold" style={{ color: entry.payload.fill }}>
+                        {val}g <span className="text-xs font-normal text-[#55706B] dark:text-[#A1B8B3]">({Math.round((val / total) * 100)}%)</span>
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
             <Legend
               formatter={(value: string) => (
-                <span className="text-sm text-[#55706B]">{value}</span>
+                <span className="text-sm text-[#55706B] dark:text-[#A1B8B3]">{value}</span>
               )}
             />
           </PieChart>
@@ -92,7 +100,7 @@ export function MacroBreakdownChart({ entries }: MacroBreakdownChartProps) {
         {data.map((d) => (
           <div key={d.name} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full" style={{ background: d.color }} />
-            <span className="text-[#55706B]">
+            <span className="text-[#55706B] dark:text-[#A1B8B3]">
               {d.name}: {d.value}g
             </span>
           </div>

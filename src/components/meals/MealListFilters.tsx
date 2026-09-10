@@ -74,12 +74,12 @@ export function MealListFilters({
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-[#DCE9E4] p-4 flex flex-col gap-3 sm:flex-row sm:items-end w-full">
+    <div className="bg-white dark:bg-[#161f1e] rounded-2xl border border-[#DCE9E4] dark:border-[#263835] p-4 flex flex-col gap-3 sm:flex-row sm:items-end w-full">
       <TextField className="w-full sm:max-w-md" fullWidth>
         <Label>Search</Label>
         <div className="relative w-full">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#849A95] pointer-events-none z-10"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#849A95] dark:text-[#6E8883] pointer-events-none z-10"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -94,7 +94,7 @@ export function MealListFilters({
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={searchOnEnter ? handleSearchKeyDown : undefined}
-            className="pl-10 placeholder:text-[#849A95]"
+            className="pl-10 placeholder:text-[#849A95] dark:placeholder:text-[#6E8883]"
           />
         </div>
       </TextField>
