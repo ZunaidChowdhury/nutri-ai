@@ -40,6 +40,10 @@ yarn-error.log*
 docs/
 engineering/
 
+# opencode
+.opencode
+opencode.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
