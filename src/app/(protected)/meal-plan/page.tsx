@@ -136,6 +136,18 @@ export default function MealPlanPage() {
       ?.flatMap((d) => d.meals)
       .reduce((sum, m) => sum + m.calories, 0) ?? 0;
 
+  const totalMacros = plan?.flatMap(d => d.meals).reduce((acc, m) => {
+    acc.protein += m.macros.protein;
+    acc.carbs += m.macros.carbs;
+    acc.fat += m.macros.fat;
+    return acc;
+  }, { protein: 0, carbs: 0, fat: 0 }) ?? { protein: 0, carbs: 0, fat: 0 };
+  
+  const totalMacrosSum = totalMacros.protein + totalMacros.carbs + totalMacros.fat;
+  const pPct = totalMacrosSum ? Math.round((totalMacros.protein / totalMacrosSum) * 100) : 0;
+  const cPct = totalMacrosSum ? Math.round((totalMacros.carbs / totalMacrosSum) * 100) : 0;
+  const fPct = totalMacrosSum ? Math.round((totalMacros.fat / totalMacrosSum) * 100) : 0;
+
   const handleDownloadPdf = () => {
     if (!plan) return;
     downloadMealPlanPdf({
@@ -152,17 +164,17 @@ export default function MealPlanPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8 max-w-4xl mx-auto w-full">
+    <div className="flex flex-col gap-6 p-4 md:p-8 max-w-[1280px] mx-auto w-full">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl md:text-3xl font-bold">AI Meal Planner</h1>
-        <p className="text-muted">
+        <h1 className="text-2xl md:text-3xl font-bold text-[#163330] dark:text-[#E8F2EF]">✨ AI Meal Planner</h1>
+        <p className="text-[#55706B] dark:text-[#A1B8B3]">
           Tell us your goals and preferences, and our AI will generate a personalized 7-day meal plan.
         </p>
       </div>
 
-      <Card className="border border-border dark:border-border">
+      <Card className="rounded-2xl border border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e] shadow-sm">
         <Card.Header className="pb-0 px-6 pt-6">
-          <h2 className="text-lg font-semibold">Your Preferences</h2>
+          <h2 className="text-lg font-semibold text-[#163330] dark:text-[#E8F2EF]">Your Preferences</h2>
         </Card.Header>
         <Card.Content className="gap-5 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -220,60 +232,75 @@ export default function MealPlanPage() {
               </Select.Popover>
             </Select>
 
-            <Select
-              placeholder="Select restrictions"
-              selectionMode="multiple"
-              value={form.restrictions}
-              onChange={(keys) => {
-                dispatch(setRestrictions(keys as string[]));
-              }}
-              className="md:col-span-2"
-              fullWidth
-            >
-              <Label>Dietary Restrictions</Label>
-              <Select.Trigger>
-                <Select.Value />
-                <Select.Indicator />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  {RESTRICTION_OPTIONS.map((r) => (
-                    <ListBox.Item key={r} id={r} textValue={r}>
+            <div className="md:col-span-2">
+              <Label className="mb-2 block">Dietary Restrictions</Label>
+              <div className="flex flex-wrap gap-2 mt-1.5">
+                {RESTRICTION_OPTIONS.map((r) => {
+                  const isSelected = form.restrictions.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          dispatch(setRestrictions(form.restrictions.filter(x => x !== r)));
+                        } else {
+                          dispatch(setRestrictions([...form.restrictions, r]));
+                        }
+                      }}
+                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                        isSelected 
+                          ? 'bg-[#DDF5F0] dark:bg-[#007F78]/25 text-[#007F78] dark:text-[#2DD4BF] border-[#007F78] font-medium' 
+                          : 'bg-white dark:bg-[#1b2b28] text-[#55706B] dark:text-[#A1B8B3] border-[#DCE9E4] dark:border-[#263835] hover:bg-[#F7FAF8] dark:hover:bg-[#203330]'
+                      }`}
+                    >
                       {r}
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
-            <TextField className="w-full md:col-span-2" isRequired>
-              <Label>Daily Calorie Target</Label>
-              <Input
-                type="number"
-                placeholder="2000"
-                value={String(form.calorieTarget)}
-                onChange={(e) => dispatch(setCalorieTarget(Number(e.target.value) || 2000))}
-                fullWidth
-              />
-            </TextField>
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <TextField isRequired fullWidth>
+                <Label>Daily Calorie Target</Label>
+                <Input
+                  type="number"
+                  placeholder="2000"
+                  value={String(form.calorieTarget)}
+                  onChange={(e) => dispatch(setCalorieTarget(Number(e.target.value) || 2000))}
+                  fullWidth
+                />
+              </TextField>
+              <div className="flex gap-2">
+                {[1500, 2000, 2500].map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => dispatch(setCalorieTarget(val))}
+                    className="px-3 py-1 text-xs rounded-full border border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#1b2b28] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#F7FAF8] dark:hover:bg-[#203330] transition-colors"
+                  >
+                    {val} kcal
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-danger-soft dark:bg-danger-soft text-danger text-sm">
+            <div className="p-4 mt-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 text-sm">
               {error}
             </div>
           )}
 
           <Button
-            variant="primary"
             size="lg"
             onPress={handleGenerate}
             isPending={isGenerating}
             isDisabled={!form.goal}
-            className="w-full"
+            className="w-full mt-4 bg-[#007F78] hover:bg-[#005F5A] text-white rounded-xl"
           >
-            Generate Meal Plan
+            ✨ Generate Meal Plan
           </Button>
         </Card.Content>
       </Card>
@@ -281,11 +308,34 @@ export default function MealPlanPage() {
       {isGenerating && <AgentLoadingState agentName="Meal Planning" />}
 
       {plan && !isGenerating && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-6 mt-4">
+          <div className="bg-[#EEF7F3] dark:bg-[#1b2b28] rounded-2xl p-4 md:px-6 flex flex-wrap gap-6 items-center justify-between border border-[#DCE9E4] dark:border-[#263835]">
+            <div className="flex gap-8">
+              <div className="flex flex-col">
+                <span className="text-xs text-[#849A95] dark:text-[#6E8883] uppercase tracking-wide font-semibold">Total Calories</span>
+                <span className="font-semibold text-lg text-[#163330] dark:text-[#E8F2EF]">{totalCalories}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-[#849A95] dark:text-[#6E8883] uppercase tracking-wide font-semibold">Avg/Day</span>
+                <span className="font-semibold text-lg text-[#163330] dark:text-[#E8F2EF]">~{Math.round(totalCalories / 7)}</span>
+              </div>
+            </div>
+            <div className="flex gap-4 items-center">
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-[#849A95] dark:text-[#6E8883] uppercase tracking-wide font-semibold mb-1">Macro Split</span>
+                <div className="flex gap-2 text-sm font-medium">
+                  <span className="text-[#007F78] dark:text-[#2DD4BF]">{pPct}% P</span>
+                  <span className="text-[#F59E0B]">{cPct}% C</span>
+                  <span className="text-[#EF4444]">{fPct}% F</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold">Your 7-Day Plan</h2>
-              <Chip variant="soft" color="accent" size="sm">
+              <h2 className="text-xl font-bold text-[#163330] dark:text-[#E8F2EF]">Your 7-Day Plan</h2>
+              <Chip className="bg-[#DDF5F0] dark:bg-[#007F78]/25 text-[#007F78] dark:text-[#2DD4BF] font-medium border-none" size="sm">
                 ~{Math.round(totalCalories / 7)} cal/day avg
               </Chip>
             </div>
@@ -293,6 +343,7 @@ export default function MealPlanPage() {
               <Button
                 variant="secondary"
                 onPress={handleDownloadPdf}
+                className="bg-white dark:bg-[#1b2b28] border border-[#DCE9E4] dark:border-[#263835] text-[#163330] dark:text-[#E8F2EF] hover:bg-[#F7FAF8] dark:hover:bg-[#203330]"
               >
                 <DownloadIcon className="size-4" />
                 Download PDF
@@ -301,6 +352,7 @@ export default function MealPlanPage() {
                 variant="outline"
                 onPress={() => runGeneration(lastSource)}
                 isPending={isGenerating}
+                className="bg-white dark:bg-[#1b2b28] border-[#DCE9E4] dark:border-[#263835] text-[#163330] dark:text-[#E8F2EF] hover:bg-[#F7FAF8] dark:hover:bg-[#203330]"
               >
                 Regenerate
               </Button>
@@ -318,12 +370,12 @@ export default function MealPlanPage() {
       <Modal state={sourceModal}>
         <Modal.Backdrop>
           <Modal.Container placement="center" size="md">
-            <Modal.Dialog>
+            <Modal.Dialog className="rounded-2xl">
               <Modal.Header>
-                <Modal.Heading>How should your plan be built?</Modal.Heading>
+                <Modal.Heading className="text-lg font-bold text-[#163330] dark:text-[#E8F2EF]">How should your plan be built?</Modal.Heading>
               </Modal.Header>
               <Modal.Body>
-                <p className="text-sm text-muted">
+                <p className="text-sm text-[#55706B] dark:text-[#A1B8B3]">
                   Choose which meals the AI should pull from when generating your 7-day plan.
                 </p>
                 <div className="flex flex-col gap-3 pt-2">
@@ -332,25 +384,25 @@ export default function MealPlanPage() {
                     onClick={() => setPendingSource('random')}
                     className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-colors cursor-pointer ${
                       pendingSource === 'random'
-                        ? 'border-accent bg-accent-soft'
-                        : 'border-border hover:bg-surface-secondary'
+                        ? 'border-[#007F78] bg-[#DDF5F0] dark:bg-[#007F78]/25'
+                        : 'border-[#DCE9E4] dark:border-[#263835] hover:bg-[#F7FAF8] dark:hover:bg-[#203330] bg-white dark:bg-[#1b2b28]'
                     }`}
                   >
                     <span
                       className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border ${
                         pendingSource === 'random'
-                          ? 'border-accent bg-accent text-white'
-                          : 'border-border'
+                          ? 'border-[#007F78] bg-[#007F78] text-white'
+                          : 'border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e]'
                       }`}
                     >
                       {pendingSource === 'random' && <CheckIcon className="size-3" />}
                     </span>
                     <span className="flex flex-col gap-0.5">
-                      <span className="font-medium">
+                      <span className="font-medium text-[#163330] dark:text-[#E8F2EF]">
                         <PlusIcon className="size-4 inline mr-1 -mt-0.5" />
                         Random meals
                       </span>
-                      <span className="text-sm text-muted">
+                      <span className="text-sm text-[#55706B] dark:text-[#A1B8B3]">
                         The AI picks from the whole nutrition catalog, matching your goal, restrictions and calorie target.
                       </span>
                     </span>
@@ -362,28 +414,28 @@ export default function MealPlanPage() {
                     onClick={() => setPendingSource('selected')}
                     className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-colors cursor-pointer ${
                       !selectedEnabled
-                        ? 'opacity-50 cursor-not-allowed'
+                        ? 'opacity-50 cursor-not-allowed bg-white dark:bg-[#1b2b28] border-[#DCE9E4] dark:border-[#263835]'
                         : pendingSource === 'selected'
-                          ? 'border-accent bg-accent-soft'
-                          : 'border-border hover:bg-surface-secondary'
+                          ? 'border-[#007F78] bg-[#DDF5F0] dark:bg-[#007F78]/25'
+                          : 'border-[#DCE9E4] dark:border-[#263835] hover:bg-[#F7FAF8] dark:hover:bg-[#203330] bg-white dark:bg-[#1b2b28]'
                     }`}
                   >
                     <span
                       className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border ${
                         pendingSource === 'selected'
-                          ? 'border-accent bg-accent text-white'
-                          : 'border-border'
+                          ? 'border-[#007F78] bg-[#007F78] text-white'
+                          : 'border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e]'
                       }`}
                     >
                       {pendingSource === 'selected' && <CheckIcon className="size-3" />}
                     </span>
                     <span className="flex flex-col gap-0.5">
-                      <span className="font-medium">Selected meals ({selectedCount})</span>
-                      <span className="text-sm text-muted">
+                      <span className="font-medium text-[#163330] dark:text-[#E8F2EF]">Selected meals ({selectedCount})</span>
+                      <span className="text-sm text-[#55706B] dark:text-[#A1B8B3]">
                         The AI builds your plan exclusively from your selected meal list.
                       </span>
                       {!selectedEnabled && (
-                        <span className="text-xs text-warning">
+                        <span className="text-xs text-[#EF4444] mt-1">
                           Select at least {MIN_SELECTED} meals to use this option.
                         </span>
                       )}
@@ -392,10 +444,17 @@ export default function MealPlanPage() {
                 </div>
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onPress={() => setIsSourceModalOpen(false)}>
+                <Button 
+                  variant="secondary" 
+                  onPress={() => setIsSourceModalOpen(false)}
+                  className="bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#163330] dark:text-[#E8F2EF] hover:bg-[#DCE9E4] dark:hover:bg-[#263835]"
+                >
                   Cancel
                 </Button>
-                <Button variant="primary" onPress={confirmSource}>
+                <Button 
+                  onPress={confirmSource}
+                  className="bg-[#007F78] text-white hover:bg-[#005F5A]"
+                >
                   Continue
                 </Button>
               </Modal.Footer>

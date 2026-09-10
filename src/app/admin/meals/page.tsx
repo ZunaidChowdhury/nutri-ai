@@ -44,13 +44,12 @@ function MealVisibilityControl({ meal }: { meal: Meal }) {
       <Dropdown.Trigger isDisabled={mutation.isPending}>
         <Chip
           size="sm"
-          variant="soft"
-          color={
+          className={
             meal.lockedVisibility
-              ? 'warning'
+              ? 'bg-[#FEF3C7] dark:bg-[#F59E0B]/20 text-[#92400E] dark:text-[#FCD34D] cursor-pointer'
               : meal.visibility === 'public'
-                ? 'success'
-                : 'default'
+                ? 'bg-[#EAF7DE] dark:bg-[#65B82E]/20 text-[#166534] dark:text-[#86EFAC] cursor-pointer'
+                : 'bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#55706B] dark:text-[#A1B8B3] cursor-pointer'
           }
         >
           {selected === 'public'
@@ -142,11 +141,11 @@ export default function AdminMealsPage() {
   const hasActiveFilters = !!search || !!cuisineTag;
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col gap-6 px-4 md:px-8 py-6 md:py-8 max-w-[1280px] mx-auto w-full">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl md:text-3xl font-bold">All Meals</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#163330] dark:text-[#E8F2EF]">All Meals</h1>
         {!isPending && !isError && (
-          <p className="text-muted">
+          <p className="text-[#55706B] dark:text-[#A1B8B3]">
             {data?.total ?? 0} meal{data?.total !== 1 ? 's' : ''} on the platform
           </p>
         )}
@@ -183,6 +182,7 @@ export default function AdminMealsPage() {
                   setCuisineTag('');
                   setPage(1);
                 }}
+                className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
               >
                 Clear filters
               </Button>
@@ -197,66 +197,66 @@ export default function AdminMealsPage() {
       ) : (
         <> 
       <div className="hidden md:block">
-        <Table>
+        <Table className="rounded-2xl border border-[#DCE9E4] dark:border-[#263835] dark:bg-[#161f1e]">
           <Table.ScrollContainer>
             <Table.Content aria-label="All meals admin table" className="min-w-[600px]">
               <Table.Header>
-                <Table.Column>IMAGE</Table.Column>
-                <Table.Column isRowHeader>TITLE</Table.Column>
-                <Table.Column>OWNER</Table.Column>
-                <Table.Column>CUISINE</Table.Column>
-                <Table.Column>CALORIES</Table.Column>
-                <Table.Column>RATING</Table.Column>
-                <Table.Column>VISIBILITY</Table.Column>
-                <Table.Column>ACTIONS</Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">IMAGE</span></Table.Column>
+                <Table.Column isRowHeader><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">TITLE</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">OWNER</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">CUISINE</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">CALORIES</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">RATING</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">VISIBILITY</span></Table.Column>
+                <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">ACTIONS</span></Table.Column>
               </Table.Header>
               <Table.Body>
                 {meals.map((meal) => (
-                  <Table.Row key={meal._id}>
+                  <Table.Row key={meal._id} id={meal._id} className="hover:bg-[#F7FAF8] dark:hover:bg-[#1b2b28] transition-colors">
                     <Table.Cell>
                       <img
                         src={meal.imageUrl || '/placeholder-meal.svg'}
                         alt={meal.title}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-12 h-12 object-cover rounded-xl"
                       />
                     </Table.Cell>
-                    <Table.Cell className="font-medium">{meal.title}</Table.Cell>
+                    <Table.Cell className="font-medium text-[#163330] dark:text-[#E8F2EF]">{meal.title}</Table.Cell>
                     <Table.Cell>
                       {meal.owner ? (
                         <div className="flex flex-col">
-                          <span className="font-medium">{meal.owner.name}</span>
-                          <span className="text-xs text-muted">{meal.owner.email}</span>
+                          <span className="font-medium text-[#163330] dark:text-[#E8F2EF]">{meal.owner.name}</span>
+                          <span className="text-xs text-[#849A95] dark:text-[#6E8883]">{meal.owner.email}</span>
                         </div>
                       ) : (
-                        <span className="text-muted">—</span>
+                        <span className="text-[#849A95] dark:text-[#6E8883]">—</span>
                       )}
                     </Table.Cell>
                     <Table.Cell>
-                      <Chip size="sm" variant="soft">
+                      <Chip size="sm" className="bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#163330] dark:text-[#E8F2EF] border border-[#DCE9E4] dark:border-[#263835]">
                         {meal.cuisineTag}
                       </Chip>
                     </Table.Cell>
-                    <Table.Cell>{meal.calories}</Table.Cell>
-                    <Table.Cell>{meal.rating.toFixed(1)}</Table.Cell>
+                    <Table.Cell className="text-[#163330] dark:text-[#E8F2EF]">{meal.calories}</Table.Cell>
+                    <Table.Cell className="text-[#163330] dark:text-[#E8F2EF]">{meal.rating.toFixed(1)}</Table.Cell>
                     <Table.Cell>
                       <MealVisibilityControl meal={meal} />
                     </Table.Cell>
                     <Table.Cell>
                       <div className="flex gap-2">
-                        <Link href={`/meals/${meal._id}`}>
-                          <Button size="sm" variant="secondary">
+                        <Link href={`/meals/${meal._id}`} className="!no-underline">
+                          <Button size="sm" className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                             View
                           </Button>
                         </Link>
-                        <Link href={`/items/edit/${meal._id}`}>
-                          <Button size="sm" variant="secondary">
+                        <Link href={`/items/edit/${meal._id}`} className="!no-underline">
+                          <Button size="sm" className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                             Edit
                           </Button>
                         </Link>
                         <Button
                           size="sm"
-                          variant="danger-soft"
                           onPress={() => setDeleteTarget(meal)}
+                          className="bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
                           Delete
                         </Button>
@@ -275,23 +275,22 @@ export default function AdminMealsPage() {
           <div key={meal._id}>
             <Link
               href={`/meals/${meal._id}`}
-              className="flex flex-col gap-2 rounded-xl border border-border p-3 dark:border-default"
+              className="flex flex-col gap-2 rounded-xl border border-[#DCE9E4] dark:border-[#263835] bg-white dark:bg-[#161f1e] p-3 !no-underline"
             >
               <img
                 src={meal.imageUrl || '/placeholder-meal.svg'}
                 alt={meal.title}
                 className="w-full h-36 object-cover rounded-lg"
               />
-              <span className="font-semibold">{meal.title}</span>
-              <span className="text-xs text-muted">
+              <span className="font-semibold text-[#163330] dark:text-[#E8F2EF]">{meal.title}</span>
+              <span className="text-xs text-[#55706B] dark:text-[#A1B8B3]">
                 {meal.owner?.name || 'Unknown owner'} · {meal.cuisineTag} ·{' '}
                 {meal.calories} cal
               </span>
             </Link>
             <Button
               size="sm"
-              variant="danger-soft"
-              className="mt-2 w-full"
+              className="mt-2 w-full bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
               onPress={() => setDeleteTarget(meal)}
             >
               Delete
@@ -314,35 +313,36 @@ export default function AdminMealsPage() {
       )}
 
       <Modal state={deleteModalState}>
-        <Modal.Backdrop />
-        <Modal.Container size="md">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>Delete Meal</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <p>
-                Are you sure you want to delete{' '}
-                <strong>{deleteTarget?.title}</strong>? This action cannot be
-                undone.
-              </p>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                isPending={deleteMutation.isPending}
-                onPress={() => {
-                  if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
-                }}
-              >
-                Delete
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="md">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Delete Meal</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="text-[#55706B] dark:text-[#A1B8B3]">
+                <p>
+                  Are you sure you want to delete{' '}
+                  <strong className="text-[#163330] dark:text-[#E8F2EF] font-semibold">{deleteTarget?.title}</strong>? This action cannot be
+                  undone.
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  isPending={deleteMutation.isPending}
+                  onPress={() => {
+                    if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );

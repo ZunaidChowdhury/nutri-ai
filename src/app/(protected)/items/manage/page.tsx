@@ -10,6 +10,7 @@ import {
   Table,
   useOverlayState,
 } from '@heroui/react';
+import { FiPlus } from 'react-icons/fi';
 import { useSession } from '@/lib/auth/client';
 import { useSelectedMeals } from '@/lib/hooks/useSelectedMeals';
 import { getAllMeals } from '@/lib/api/meal';
@@ -60,7 +61,6 @@ export default function ManageMealsPage() {
   });
 
   const totalPages = data?.totalPages ?? 1;
-
   const meals = data?.data ?? [];
 
   const deleteMutation = useMutation({
@@ -92,20 +92,21 @@ export default function ManageMealsPage() {
   const hasActiveFilters = !!search || !!cuisineTag;
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col gap-6 px-4 md:px-8 py-6 md:py-8 max-w-[1280px] mx-auto w-full">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl md:text-3xl font-bold">Manage Meals</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#163330] dark:text-[#E8F2EF]">Manage Meals</h1>
           {!isPending && !isError && (
-            <p className="text-muted">
+            <p className="text-[#55706B] dark:text-[#A1B8B3]">
               {data?.total ?? 0} meal{data?.total !== 1 ? 's' : ''}
             </p>
           )}
         </div>
-        <Link href="/items/add">
-          <Button variant="primary">
+        <Link href="/items/add" className="!no-underline">
+          <button className="flex items-center gap-2 bg-[#007F78] hover:bg-[#005F5A] text-white px-4 py-2 rounded-xl transition-colors font-medium">
+            <FiPlus size={20} />
             Add Meal
-          </Button>
+          </button>
         </Link>
       </div>
 
@@ -128,83 +129,86 @@ export default function ManageMealsPage() {
       ) : isError ? (
         <ErrorFallback error={error as Error} />
       ) : meals.length === 0 ? (
-        hasActiveFilters ? (
-          <EmptyState
-            title="Nothing matched"
-            description="No meals match your search or cuisine filter."
-            action={
-              <Button
-                variant="secondary"
-                onPress={() => {
-                  setSearch('');
-                  setCuisineTag('');
-                  setPage(1);
-                }}
-              >
-                Clear filters
-              </Button>
-            }
-          />
-        ) : (
-          <EmptyState
-            title="No meals yet"
-            description="You haven't added any meals yet. Create your first meal!"
-            action={
-              <Link href="/items/add">
-                <Button variant="primary">
-                  Add Meal
+        <div className="px-4 py-8 w-full">
+          {hasActiveFilters ? (
+            <EmptyState
+              title="Nothing matched"
+              description="No meals match your search or cuisine filter."
+              action={
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    setSearch('');
+                    setCuisineTag('');
+                    setPage(1);
+                  }}
+                  className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
+                >
+                  Clear filters
                 </Button>
-              </Link>
-            }
-          />
-        )
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No meals yet"
+              description="You haven't added any meals yet. Create your first meal!"
+              action={
+                <Link href="/items/add" className="!no-underline">
+                  <button className="flex items-center gap-2 bg-[#007F78] hover:bg-[#005F5A] text-white px-4 py-2 rounded-xl transition-colors font-medium">
+                    <FiPlus size={20} />
+                    Add Meal
+                  </button>
+                </Link>
+              }
+            />
+          )}
+        </div>
       ) : (
         <>
           <div className="hidden md:block">
-            <Table className="rounded-xl border border-border">
+            <Table className="rounded-2xl border border-[#DCE9E4] dark:border-[#263835] dark:bg-[#161f1e]">
               <Table.ScrollContainer>
                 <Table.Content aria-label="Manage meals table" className="min-w-[600px]">
                   <Table.Header>
-                    <Table.Column>IMAGE</Table.Column>
-                    <Table.Column isRowHeader>TITLE</Table.Column>
-                    <Table.Column>CUISINE</Table.Column>
-                    <Table.Column>CALORIES</Table.Column>
-                    <Table.Column>RATING</Table.Column>
-                    <Table.Column>VISIBILITY</Table.Column>
-                    <Table.Column>ACTIONS</Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">IMAGE</span></Table.Column>
+                    <Table.Column isRowHeader><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">TITLE</span></Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">CUISINE</span></Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">CALORIES</span></Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">RATING</span></Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">VISIBILITY</span></Table.Column>
+                    <Table.Column><span className="text-[#849A95] dark:text-[#6E8883] text-xs font-semibold uppercase tracking-wide">ACTIONS</span></Table.Column>
                   </Table.Header>
                   <Table.Body>
                     {meals.map((meal) => (
-                      <Table.Row key={meal._id} id={meal._id}>
+                      <Table.Row key={meal._id} id={meal._id} className="hover:bg-[#F7FAF8] dark:hover:bg-[#1b2b28] transition-colors">
                         <Table.Cell>
                           <img
                             src={meal.imageUrl || '/placeholder-meal.svg'}
                             alt={meal.title}
-                            className="w-12 h-12 object-cover rounded"
+                            className="w-12 h-12 object-cover rounded-xl"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-meal.svg';
                             }}
                           />
                         </Table.Cell>
-                        <Table.Cell className="font-medium">{meal.title}</Table.Cell>
+                        <Table.Cell className="font-medium text-[#163330] dark:text-[#E8F2EF]">{meal.title}</Table.Cell>
                         <Table.Cell>
-                          <Chip size="sm" variant="soft">
+                          <Chip size="sm" className="bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#163330] dark:text-[#E8F2EF] border border-[#DCE9E4] dark:border-[#263835]">
                             {meal.cuisineTag}
                           </Chip>
                         </Table.Cell>
-                        <Table.Cell>{meal.calories}</Table.Cell>
-                        <Table.Cell>{meal.rating.toFixed(1)}</Table.Cell>
+                        <Table.Cell className="text-[#163330] dark:text-[#E8F2EF]">{meal.calories}</Table.Cell>
+                        <Table.Cell className="text-[#163330] dark:text-[#E8F2EF]">{meal.rating.toFixed(1)}</Table.Cell>
                         <Table.Cell>
                           <div className="flex items-center gap-1.5">
                             <Chip
                               size="sm"
-                              variant="soft"
-                              color={meal.visibility === 'public' ? 'success' : 'default'}
+                              className={meal.visibility === 'public' ? "bg-[#EAF7DE] dark:bg-[#65B82E]/20 text-[#166534] dark:text-[#86EFAC]" : "bg-[#EEF7F3] dark:bg-[#1b2b28] text-[#55706B] dark:text-[#A1B8B3]"}
                             >
                               {meal.visibility === 'public' ? 'Public' : 'Private'}
                             </Chip>
                             {meal.lockedVisibility && (
-                              <Chip size="sm" variant="soft" color="warning">
+                              <Chip size="sm" className="bg-[#FEF3C7] dark:bg-[#F59E0B]/20 text-[#92400E] dark:text-[#FCD34D]">
                                 Locked
                               </Chip>
                             )}
@@ -213,25 +217,24 @@ export default function ManageMealsPage() {
                         <Table.Cell>
                           <div className="flex gap-2">
                             {meal.visibility === 'public' ? (
-                              <Link href={`/meals/${meal._id}`}>
-                                <Button size="sm" variant="secondary">
+                              <Link href={`/meals/${meal._id}`} className="!no-underline">
+                                <Button size="sm" className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                                   View
                                 </Button>
                               </Link>
                             ) : (
-                              <Button size="sm" variant="secondary" isDisabled>
+                              <Button size="sm" className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] opacity-50 cursor-not-allowed" isDisabled>
                                 View
                               </Button>
                             )}
-                            <Link href={`/items/edit/${meal._id}`}>
-                              <Button size="sm" variant="secondary">
+                            <Link href={`/items/edit/${meal._id}`} className="!no-underline">
+                              <Button size="sm" className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                                 Edit
                               </Button>
                             </Link>
                             {!meal.lockedVisibility && (
                               <Button
                                 size="sm"
-                                variant="secondary"
                                 isPending={
                                   visibilityMutation.isPending &&
                                   visibilityMutation.variables?.mealId === meal._id
@@ -245,6 +248,7 @@ export default function ManageMealsPage() {
                                         : 'public',
                                   })
                                 }
+                                className="bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
                               >
                                 {meal.visibility === 'public'
                                   ? 'Make private'
@@ -254,8 +258,8 @@ export default function ManageMealsPage() {
                             {canDelete(meal) && (
                               <Button
                                 size="sm"
-                                variant="danger-soft"
                                 onPress={() => setDeleteTarget(meal)}
+                                className="bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                               >
                                 Delete
                               </Button>
@@ -280,16 +284,15 @@ export default function ManageMealsPage() {
                   onToggleSelect={userId ? () => toggleMeal(meal) : undefined}
                 />
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Link href={`/items/edit/${meal._id}`} className="flex-1">
-                    <Button size="sm" variant="secondary" className="w-full">
+                  <Link href={`/items/edit/${meal._id}`} className="flex-1 !no-underline">
+                    <Button size="sm" className="w-full bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]">
                       Edit
                     </Button>
                   </Link>
                   {!meal.lockedVisibility && (
                     <Button
                       size="sm"
-                      variant="secondary"
-                      className="flex-1"
+                      className="flex-1 bg-transparent border border-[#DCE9E4] dark:border-[#263835] text-[#55706B] dark:text-[#A1B8B3] hover:bg-[#EEF7F3] dark:hover:bg-[#1b2b28]"
                       isPending={
                         visibilityMutation.isPending &&
                         visibilityMutation.variables?.mealId === meal._id
@@ -308,8 +311,7 @@ export default function ManageMealsPage() {
                   {canDelete(meal) && (
                     <Button
                       size="sm"
-                      variant="danger-soft"
-                      className="flex-1"
+                      className="flex-1 bg-transparent border border-red-200 dark:border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                       onPress={() => setDeleteTarget(meal)}
                     >
                       Delete
@@ -340,10 +342,10 @@ export default function ManageMealsPage() {
               <Modal.Header>
                 <Modal.Heading>Delete Meal</Modal.Heading>
               </Modal.Header>
-              <Modal.Body>
+              <Modal.Body className="text-[#55706B] dark:text-[#A1B8B3]">
                 <p>
                   Are you sure you want to delete{' '}
-                  <strong>{deleteTarget?.title}</strong>? This action cannot be
+                  <strong className="text-[#163330] dark:text-[#E8F2EF] font-semibold">{deleteTarget?.title}</strong>? This action cannot be
                   undone.
                 </p>
               </Modal.Body>

@@ -274,36 +274,37 @@ export default function AdminUsersPage() {
       )}
 
       <Modal state={deleteModalState}>
-        <Modal.Backdrop />
-        <Modal.Container size="md">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>Delete User</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <p>
-                Are you sure you want to delete{' '}
-                <strong>{deleteTarget?.name}</strong> ({deleteTarget?.email})? This
-                will permanently remove the account, their meals, meal plans, and
-                nutrition reports.
-              </p>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                isPending={deleteMutation.isPending}
-                onPress={() => {
-                  if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
-                }}
-              >
-                Delete
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
+        <Modal.Backdrop>
+          <Modal.Container placement="center" size="md">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Delete User</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="text-[#55706B]">
+                <p>
+                  Are you sure you want to delete{' '}
+                  <strong className="text-[#163330] font-semibold">{deleteTarget?.name}</strong> ({deleteTarget?.email})? This
+                  will permanently remove the account, their meals, meal plans, and
+                  nutrition reports.
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onPress={() => setDeleteTarget(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  isPending={deleteMutation.isPending}
+                  onPress={() => {
+                    if (deleteTarget) deleteMutation.mutate(deleteTarget._id);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );

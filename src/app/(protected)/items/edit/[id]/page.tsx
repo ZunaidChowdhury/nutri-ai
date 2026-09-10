@@ -22,11 +22,28 @@ export default function EditMealPage() {
     enabled: !!id,
   });
 
-  if (isPending) return <Spinner label="Loading meal" />;
+  if (isPending) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 py-12 max-w-[1280px] mx-auto w-full">
+        <Spinner label="Loading meal details..." />
+      </div>
+    );
+  }
+
   if (isError) {
     const status = (error as { status?: number })?.status;
-    if (status === 404) return <NotFound />;
-    return <ErrorFallback error={error as Error} />;
+    if (status === 404) {
+      return (
+        <div className="flex flex-col items-center px-4 py-12 max-w-[1280px] mx-auto w-full">
+          <NotFound />
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col items-center px-4 py-12 max-w-[1280px] mx-auto w-full">
+        <ErrorFallback error={error as Error} />
+      </div>
+    );
   }
 
   return <MealForm mode="edit" meal={data.data} />;
