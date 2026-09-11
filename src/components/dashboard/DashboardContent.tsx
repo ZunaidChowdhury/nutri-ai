@@ -18,6 +18,7 @@ import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
 import { analyzeNutrition } from '@/lib/api/nutrition';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { DownloadIcon, TrashIcon } from '@/components/ui/icons';
+import { HiSparkles } from 'react-icons/hi';
 import type { NutritionReport } from '@/lib/types/nutrition';
 
 function todayStr() {
@@ -707,9 +708,7 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                </svg>
+                <HiSparkles className="w-4 h-4 text-white" />
                 {nutritionReport ? 'Re-run AI Analysis' : 'Analyze Nutrition'}
               </>
             )}

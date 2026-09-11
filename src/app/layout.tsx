@@ -4,6 +4,7 @@ import { Providers } from "@/providers/Providers";
 import { ThemeScript } from "@/components/ThemeScript";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import DeveloperBar from "@/components/DeveloperBar";
 
 export const metadata: Metadata = {
   title: "NutriAI",
@@ -23,6 +24,7 @@ export default function RootLayout({
         </head>
       <body className="min-h-full flex flex-col">
         <Providers>
+          {process.env.NEXT_PUBLIC_SHOW_DEV_BAR === "1" && <DeveloperBar />}
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

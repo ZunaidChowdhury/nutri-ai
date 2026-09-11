@@ -10,22 +10,26 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FAQSection from "@/components/landing/FAQSection";
 import NewsletterSection from "@/components/landing/NewsletterSection";
 import FinalCTASection from "@/components/landing/FinalCTASection";
+import PricingSection from "@/components/landing/PricingSection";
 
 export default function Home() {
   return (
     <>
       <HeroSection />
-      <BentoFeaturesSection />
+      {/* Engineered for Total Nutrition Clarity section (disabled) */}
+      {/* <BentoFeaturesSection /> */}
       <HowItWorksSection />
       <AgentSpotlightSection />
-      <AgentPipelineSection />
+      {/* How Our Tri-Agent Engine Works section (disabled) */}
+      {/* <AgentPipelineSection /> */}
       <FeaturedMealsSection />
       <ComparisonSection />
       <StatsSection />
       <TestimonialsSection />
+      <PricingSection />
+      <FinalCTASection />
       <FAQSection />
       <NewsletterSection />
-      <FinalCTASection />
     </>
   );
 }

@@ -8,6 +8,8 @@ const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/nutri-ai";
 const client = new MongoClient(uri);
 const db: Db = client.db();
 
+export { db };
+
 const isProduction = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({

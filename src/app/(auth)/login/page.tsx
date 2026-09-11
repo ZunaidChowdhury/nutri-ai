@@ -86,7 +86,10 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    await authClient.signIn.social({ provider: "google" });
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/social-signin",
+    });
   };
 
   const busy = loading || quickAction !== null;
@@ -248,7 +251,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Access Test Accounts */}
+          {/* Quick Access Test Accounts — dev only */}
+          {process.env.NODE_ENV === "development" && (
           <div className="mt-6 border-t border-[#DCE9E4] pt-4 text-center dark:border-border">
             <span className="text-[11px] font-medium text-[#849A95] dark:text-muted">
               Quick Test Access:
@@ -287,6 +291,7 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+          )}
         </div>
 
         {/* Register Link */}
