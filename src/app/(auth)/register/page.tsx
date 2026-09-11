@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import { registerSchema } from "@/lib/validation/auth";
 import { authClient, useSession } from "@/lib/auth/client";
+import { useUploadThing } from "@/lib/uploadthing";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -35,6 +36,11 @@ export default function RegisterPage() {
   const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const { startUpload, isUploading } = useUploadThing("avatar", {
+    onUploadError: (error) =>
+      setApiError(error.message || "Could not upload your profile photo"),
+  });
 
   useEffect(() => {
     if (!isPending && session?.user) router.push("/dashboard");
@@ -64,10 +70,23 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    let imageUrl: string | undefined;
+    if (form.image) {
+      try {
+        const uploaded = await startUpload([form.image]);
+        imageUrl = uploaded?.[0]?.url;
+      } catch {
+        setLoading(false);
+        setApiError("Failed to upload your profile photo. Please try again.");
+        return;
+      }
+    }
+
     const { error } = await authClient.signUp.email({
       name: form.name,
       email: form.email,
       password: form.password,
+      image: imageUrl,
     });
     setLoading(false);
 
@@ -85,7 +104,10 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = async () => {
-    await authClient.signIn.social({ provider: "google" });
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/social-signin",
+    });
   };
 
   return (
@@ -234,7 +256,7 @@ export default function RegisterPage() {
                     {form.image ? form.image.name : "Upload profile picture"}
                   </span>
                   <span className="text-[11px] text-[#849A95] dark:text-muted">
-                    PNG, JPG or WEBP up to 5MB
+                    PNG, JPG or WEBP up to 4MB
                   </span>
                 </div>
               </div>
@@ -348,13 +370,15 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isUploading}
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007F78] py-3 text-xs sm:text-sm font-bold text-white shadow-xs transition-all hover:bg-[#005F5A] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer dark:bg-accent dark:hover:bg-accent/90"
             >
-              {loading ? (
+              {loading || isUploading ? (
                 <>
                   <HeroSpinner size="sm" className="text-white" />
-                  <span>Creating account…</span>
+                  <span>
+                    {isUploading ? "Uploading photo…" : "Creating account…"}
+                  </span>
                 </>
               ) : (
                 <>
