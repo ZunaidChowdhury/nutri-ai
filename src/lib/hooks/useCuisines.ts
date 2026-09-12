@@ -5,16 +5,22 @@ import { getAllCuisines, type Cuisine } from '@/lib/api/cuisine';
 
 export const FALLBACK_CUISINES = [
   'American',
+  'Arabian',
+  'Bangladeshi',
   'Chinese',
   'French',
   'Indian',
+  'Iranian',
   'Italian',
   'Japanese',
   'Korean',
   'Mediterranean',
   'Mexican',
   'Middle Eastern',
+  'Pakistani',
+  'Russian',
   'Thai',
+  'Turkish',
   'Vietnamese',
 ];
 

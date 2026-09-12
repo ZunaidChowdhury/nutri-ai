@@ -22,6 +22,8 @@ import {
   HiChevronDown,
   HiArrowRight,
   HiCheck,
+  HiChevronLeft,
+  HiChevronRight,
 } from 'react-icons/hi';
 import {
   setSearch,
@@ -80,6 +82,60 @@ export function ExploreContent({
     () => searchParams.get('maxCalories') || ''
   );
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  const cuisineScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollPosition = useCallback(() => {
+    const el = cuisineScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 2);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = cuisineScrollRef.current;
+    if (!el) return;
+
+    checkScrollPosition();
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkScrollPosition();
+    });
+    resizeObserver.observe(el);
+
+    window.addEventListener('resize', checkScrollPosition);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', checkScrollPosition);
+    };
+  }, [checkScrollPosition, allCuisineTags]);
+
+  const scrollCarousel = useCallback((direction: 'left' | 'right') => {
+    const el = cuisineScrollRef.current;
+    if (!el) return;
+    const scrollAmount = Math.max(el.clientWidth * 0.7, 240);
+    el.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!filters.cuisineTag || !cuisineScrollRef.current) return;
+    const activeBtn = cuisineScrollRef.current.querySelector<HTMLButtonElement>(
+      '[data-selected="true"]'
+    );
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [filters.cuisineTag]);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastWrittenUrl = useRef<string | null>(null);
@@ -191,9 +247,16 @@ export function ExploreContent({
   );
 
   const handleCuisineSelect = useCallback(
-    (tag: string) => {
+    (tag: string, e?: React.MouseEvent<HTMLButtonElement>) => {
       const selected = tag === 'All' ? '' : tag;
       dispatch(setCuisineTag(selected));
+      if (e?.currentTarget) {
+        e.currentTarget.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
     },
     [dispatch]
   );
@@ -281,28 +344,76 @@ export function ExploreContent({
             </div>
           </div>
 
-          {/* 2. Horizontal Cuisine Quick-Pills Carousel */}
-          <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
-            {allCuisineTags.map((tag) => {
-              const isSelected =
-                tag === 'All'
-                  ? !filters.cuisineTag
-                  : filters.cuisineTag.toLowerCase() === tag.toLowerCase();
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleCuisineSelect(tag)}
-                  className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#007F78] text-white shadow-xs dark:bg-accent'
-                      : 'bg-white text-[#55706B] border border-[#DCE9E4] hover:border-[#007F78]/40 hover:text-[#007F78] hover:bg-[#F7FAF8] dark:bg-[#1a1a1a] dark:border-border dark:text-muted dark:hover:text-accent dark:hover:border-accent/40'
-                  }`}
-                >
-                  {tag}
-                </button>
-              );
-            })}
+          {/* 2. Horizontal Cuisine Quick-Pills Carousel with Navigation Arrows */}
+          <div className="relative mt-5">
+            {/* Left Arrow Button with Gradient Fade */}
+            <div
+              className={`pointer-events-none absolute left-0 top-0 bottom-0 z-10 flex items-center pr-8 pl-0.5 bg-gradient-to-r from-white via-white/95 to-transparent transition-all duration-300 dark:from-[#121c19] dark:via-[#121c19]/95 dark:to-transparent ${
+                canScrollLeft ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
+              }`}
+            >
+              <button
+                type="button"
+                disabled={!canScrollLeft}
+                onClick={() => scrollCarousel('left')}
+                aria-label="Scroll cuisines left"
+                title="Scroll cuisines left"
+                className={`flex h-7 w-7 items-center justify-center rounded-full border border-[#DCE9E4] bg-white text-[#163330] shadow-sm transition-all duration-200 hover:scale-110 hover:border-[#007F78] hover:bg-[#DDF5F0] hover:text-[#007F78] active:scale-95 dark:border-border dark:bg-[#1a1a1a] dark:text-foreground dark:hover:border-accent dark:hover:bg-accent/20 dark:hover:text-accent ${
+                  canScrollLeft ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none cursor-default'
+                }`}
+              >
+                <HiChevronLeft className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Scroll Container */}
+            <div
+              ref={cuisineScrollRef}
+              onScroll={checkScrollPosition}
+              className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
+            >
+              {allCuisineTags.map((tag) => {
+                const isSelected =
+                  tag === 'All'
+                    ? !filters.cuisineTag
+                    : filters.cuisineTag.toLowerCase() === tag.toLowerCase();
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    data-selected={isSelected}
+                    onClick={(e) => handleCuisineSelect(tag, e)}
+                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#007F78] text-white shadow-xs dark:bg-accent'
+                        : 'bg-white text-[#55706B] border border-[#DCE9E4] hover:border-[#007F78]/40 hover:text-[#007F78] hover:bg-[#F7FAF8] dark:bg-[#1a1a1a] dark:border-border dark:text-muted dark:hover:text-accent dark:hover:border-accent/40'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Arrow Button with Gradient Fade */}
+            <div
+              className={`pointer-events-none absolute right-0 top-0 bottom-0 z-10 flex items-center pl-8 pr-0.5 bg-gradient-to-l from-white via-white/95 to-transparent transition-all duration-300 dark:from-[#121c19] dark:via-[#121c19]/95 dark:to-transparent ${
+                canScrollRight ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
+              }`}
+            >
+              <button
+                type="button"
+                disabled={!canScrollRight}
+                onClick={() => scrollCarousel('right')}
+                aria-label="Scroll cuisines right"
+                title="Scroll cuisines right"
+                className={`flex h-7 w-7 items-center justify-center rounded-full border border-[#DCE9E4] bg-white text-[#163330] shadow-sm transition-all duration-200 hover:scale-110 hover:border-[#007F78] hover:bg-[#DDF5F0] hover:text-[#007F78] active:scale-95 dark:border-border dark:bg-[#1a1a1a] dark:text-foreground dark:hover:border-accent dark:hover:bg-accent/20 dark:hover:text-accent ${
+                  canScrollRight ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none cursor-default'
+                }`}
+              >
+                <HiChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
