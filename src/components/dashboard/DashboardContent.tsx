@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Button, Modal, useOverlayState } from '@heroui/react';
 import { getUserMeals } from '@/lib/api/dashboard';
@@ -9,7 +10,6 @@ import { downloadMealPlanPdf } from '@/lib/mealplanExport';
 import { getFoodLog, logFood, deleteFoodLog } from '@/lib/api/log';
 import { getAuthToken } from '@/lib/core/server';
 import type { Meal } from '@/lib/types/meal';
-import type { MealPlan } from '@/lib/types/mealplan';
 import type { FoodLogEntry } from '@/lib/types/foodlog';
 import { CaloriesLineChart } from './CaloriesLineChart';
 import { MacroBreakdownChart } from './MacroBreakdownChart';
@@ -19,7 +19,6 @@ import { analyzeNutrition } from '@/lib/api/nutrition';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { DownloadIcon, TrashIcon } from '@/components/ui/icons';
 import { HiSparkles } from 'react-icons/hi';
-import type { NutritionReport } from '@/lib/types/nutrition';
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -28,21 +27,7 @@ function todayStr() {
 type LogTab = 'meals' | 'plan' | 'custom';
 
 export function DashboardContent({ greeting }: { greeting?: string } = {}) {
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<Error | null>(null);
-
-  const [logEntries, setLogEntries] = useState<FoodLogEntry[]>([]);
-  const [logLoading, setLogLoading] = useState(true);
-  const [logRefreshKey, setLogRefreshKey] = useState(0);
-
-  const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
-  const [planLoading, setPlanLoading] = useState(true);
-  const [activePlanDay, setActivePlanDay] = useState(0);
-
-  const [nutritionReport, setNutritionReport] = useState<NutritionReport | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState('');
+  const queryClient = useQueryClient();
 
   const [isLogOpen, setIsLogOpen] = useState(false);
   const logModal = useOverlayState({ isOpen: isLogOpen, onOpenChange: setIsLogOpen });
@@ -51,6 +36,8 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
   const [selectedMealId, setSelectedMealId] = useState<string>('');
   const [mealServings, setMealServings] = useState(1);
   const [mealDate, setMealDate] = useState(todayStr());
+
+  const [activePlanDay, setActivePlanDay] = useState(0);
 
   const [planDayIdx, setPlanDayIdx] = useState(0);
   const [planMealIdx, setPlanMealIdx] = useState(0);
@@ -65,82 +52,97 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
   const [customServings, setCustomServings] = useState(1);
   const [customDate, setCustomDate] = useState(todayStr());
 
-  const [isLogging, setIsLogging] = useState(false);
   const [logError, setLogError] = useState('');
   const [quickLoggingIdx, setQuickLoggingIdx] = useState<number | null>(null);
+  const [analysisError, setAnalysisError] = useState('');
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
+  const mealsQuery = useQuery({
+    queryKey: ['dashboard', 'meals'],
+    queryFn: async () => {
       const token = await getAuthToken();
-      if (cancelled || !token) return;
-      try {
-        const { authClient } = await import('@/lib/auth/client');
-        const { data: session } = await authClient.getSession();
-        const ownerId = session?.user?.id;
-        if (!ownerId) return;
-        const res = await getUserMeals(ownerId, token, 30);
-        if (!cancelled) setMeals(res.data);
-      } catch (err) {
-        if (!cancelled) {
-          setMeals([]);
-          setLoadError(err instanceof Error ? err : new Error(String(err)));
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
+      if (!token) return [] as Meal[];
+      const { authClient } = await import('@/lib/auth/client');
+      const { data: session } = await authClient.getSession();
+      const ownerId = session?.user?.id;
+      if (!ownerId) return [] as Meal[];
+      const res = await getUserMeals(ownerId, token, 30);
+      return res.data;
+    },
+    staleTime: 0,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
+  const mealPlanQuery = useQuery({
+    queryKey: ['dashboard', 'mealPlan'],
+    queryFn: async () => {
       const token = await getAuthToken();
-      if (cancelled || !token) return;
+      if (!token) return null;
       try {
-        const plan = await getMyMealPlan(token);
-        if (!cancelled) setMealPlan(plan);
+        return await getMyMealPlan(token);
       } catch {
-        if (!cancelled) setMealPlan(null);
-      } finally {
-        if (!cancelled) setPlanLoading(false);
+        return null;
       }
-    })();
-    return () => { cancelled = true; };
-  }, []);
+    },
+    staleTime: 0,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
+  const foodLogQuery = useQuery({
+    queryKey: ['dashboard', 'foodLog'],
+    queryFn: async () => {
       const token = await getAuthToken();
-      if (cancelled || !token) return;
-      try {
-        const { data } = await getFoodLog(token, { days: 30 });
-        if (!cancelled) setLogEntries(data);
-      } catch {
-        if (!cancelled) setLogEntries([]);
-      } finally {
-        if (!cancelled) setLogLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [logRefreshKey]);
+      if (!token) return [] as FoodLogEntry[];
+      const res = await getFoodLog(token, { days: 30 });
+      return res.data;
+    },
+    staleTime: 0,
+  });
 
-  const handleAnalyzeNutrition = async () => {
-    setAnalysisError('');
-    setIsAnalyzing(true);
-    try {
+  const meals = mealsQuery.data ?? [];
+  const mealPlan = mealPlanQuery.data ?? null;
+  const logEntries = foodLogQuery.data ?? [];
+  const loadError = mealsQuery.error;
+  const isLoading = mealsQuery.isPending;
+  const planLoading = mealPlanQuery.isPending;
+
+  const logFoodMutation = useMutation({
+    mutationFn: (payload: Parameters<typeof logFood>[1]) =>
+      getAuthToken().then((token) => {
+        if (!token) throw new Error('Unauthorized');
+        return logFood(token, payload);
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'foodLog'] });
+    },
+  });
+
+  const deleteLogMutation = useMutation({
+    mutationFn: async (id: string) => {
       const token = await getAuthToken();
       if (!token) return;
-      const result = await analyzeNutrition(token);
-      if (result) setNutritionReport(result);
-      else setAnalysisError('Failed to analyze nutrition. Please try again.');
-    } catch {
-      setAnalysisError('Failed to analyze nutrition. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
-    }
+      await deleteFoodLog(token, id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'foodLog'] });
+    },
+  });
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const token = await getAuthToken();
+      if (!token) return null;
+      return analyzeNutrition(token);
+    },
+    onSuccess: (data) => {
+      setAnalysisError(data ? '' : 'Failed to analyze nutrition. Please try again.');
+    },
+  });
+
+  const isLogging = logFoodMutation.isPending;
+  const isAnalyzing = analyzeMutation.isPending;
+  const nutritionReport = analyzeMutation.data ?? null;
+
+  const handleAnalyzeNutrition = () => {
+    setAnalysisError('');
+    analyzeMutation.mutate();
   };
 
   const totalCalories = logEntries.reduce((sum, e) => sum + e.calories, 0);
@@ -162,13 +164,6 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
     macros: e.macros,
   }));
 
-  const refreshLog = async () => {
-    const token = await getAuthToken();
-    if (!token) return;
-    const { data } = await getFoodLog(token, { days: 30 });
-    setLogEntries(data);
-  };
-
   const resetLogForm = () => {
     setSelectedMealId('');
     setMealServings(1);
@@ -188,21 +183,20 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
   };
 
   const handleLogSubmit = async () => {
-    const token = await getAuthToken();
-    if (!token) return;
-    setIsLogging(true);
     setLogError('');
 
     try {
+      let payload: Parameters<typeof logFood>[1] | null = null;
+
       if (logTab === 'meals') {
         if (!selectedMealId) { setLogError('Select a meal first.'); return; }
-        await logFood(token, { mealId: selectedMealId, servings: mealServings, consumedOn: `${mealDate}T13:00:00.000Z` });
+        payload = { mealId: selectedMealId, servings: mealServings, consumedOn: `${mealDate}T13:00:00.000Z` };
       } else if (logTab === 'plan') {
         if (!mealPlan) { setLogError('No meal plan available.'); return; }
         const day = mealPlan.days[planDayIdx];
         const m = day?.meals[planMealIdx];
         if (!m) { setLogError('Select a meal from your plan.'); return; }
-        await logFood(token, {
+        payload = {
           name: m.name,
           calories: Math.round(m.calories * planServings),
           macros: {
@@ -212,26 +206,25 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
           },
           servings: planServings,
           consumedOn: `${planDate}T13:00:00.000Z`,
-        });
+        };
       } else {
         if (!customName || !customCalories || !customProtein || !customCarbs || !customFat) {
           setLogError('All fields are required.'); return;
         }
-        await logFood(token, {
+        payload = {
           name: customName,
           calories: Number(customCalories),
           macros: { protein: Number(customProtein), carbs: Number(customCarbs), fat: Number(customFat) },
           servings: customServings,
           consumedOn: `${customDate}T13:00:00.000Z`,
-        });
+        };
       }
-      await refreshLog();
+
+      await logFoodMutation.mutateAsync(payload);
       resetLogForm();
       setIsLogOpen(false);
     } catch {
       setLogError('Failed to log food. Please try again.');
-    } finally {
-      setIsLogging(false);
     }
   };
 
@@ -241,12 +234,9 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
     const m = day?.meals[mealIdx];
     if (!m) return;
 
-    const token = await getAuthToken();
-    if (!token) return;
-
     setQuickLoggingIdx(mealIdx);
     try {
-      await logFood(token, {
+      await logFoodMutation.mutateAsync({
         name: m.name,
         calories: Math.round(m.calories),
         macros: {
@@ -257,7 +247,6 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
         servings: 1,
         consumedOn: `${todayStr()}T13:00:00.000Z`,
       });
-      await refreshLog();
     } catch {
       // ignore or alert
     } finally {
@@ -265,11 +254,8 @@ export function DashboardContent({ greeting }: { greeting?: string } = {}) {
     }
   };
 
-  const handleDeleteLog = async (id: string) => {
-    const token = await getAuthToken();
-    if (!token) return;
-    await deleteFoodLog(token, id);
-    setLogEntries((prev) => prev.filter((e) => e._id !== id));
+  const handleDeleteLog = (id: string) => {
+    deleteLogMutation.mutate(id);
   };
 
   if (loadError) return <ErrorFallback error={loadError} />;
