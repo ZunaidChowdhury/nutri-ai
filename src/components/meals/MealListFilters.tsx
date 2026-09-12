@@ -2,21 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TextField, Input, Label, Select, ListBox } from '@heroui/react';
+import { useCuisines, FALLBACK_CUISINES } from '@/lib/hooks/useCuisines';
 
-export const CUISINE_TAGS = [
-  'Italian',
-  'Mexican',
-  'Japanese',
-  'Indian',
-  'American',
-  'Mediterranean',
-  'Chinese',
-  'Thai',
-  'French',
-  'Korean',
-  'Middle Eastern',
-  'Vietnamese',
-];
+export const CUISINE_TAGS = FALLBACK_CUISINES;
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -37,6 +25,7 @@ export function MealListFilters({
   searchPlaceholder = 'Search by name...',
   searchOnEnter = false,
 }: MealListFiltersProps) {
+  const { cuisineNames } = useCuisines();
   const [searchInput, setSearchInput] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,7 +104,7 @@ export function MealListFilters({
             <ListBox.Item id="" textValue="All cuisines">
               All cuisines
             </ListBox.Item>
-            {CUISINE_TAGS.map((tag) => (
+            {cuisineNames.map((tag) => (
               <ListBox.Item key={tag} id={tag} textValue={tag}>
                 {tag}
               </ListBox.Item>

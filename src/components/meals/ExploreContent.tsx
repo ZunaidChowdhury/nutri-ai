@@ -34,22 +34,7 @@ import {
   resetFilters,
 } from '@/store/filtersSlice';
 import type { RootState } from '@/store/store';
-
-const CUISINE_TAGS = [
-  'All',
-  'Italian',
-  'Mexican',
-  'Japanese',
-  'Indian',
-  'American',
-  'Mediterranean',
-  'Chinese',
-  'Thai',
-  'French',
-  'Korean',
-  'Middle Eastern',
-  'Vietnamese',
-];
+import { useCuisines } from '@/lib/hooks/useCuisines';
 
 const CALORIE_PRESETS = [
   { label: 'All Calories', min: '', max: '' },
@@ -82,6 +67,8 @@ export function ExploreContent({
   const userId = session?.user?.id;
   const { selectedIds, toggleMeal } = useSelectedMeals(userId);
   const filters = useSelector((state: RootState) => state.filters);
+  const { cuisineNames } = useCuisines();
+  const allCuisineTags = useMemo(() => ['All', ...cuisineNames], [cuisineNames]);
 
   const [searchInput, setSearchInput] = useState(
     () => searchParams.get('search') || ''
@@ -296,7 +283,7 @@ export function ExploreContent({
 
           {/* 2. Horizontal Cuisine Quick-Pills Carousel */}
           <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
-            {CUISINE_TAGS.map((tag) => {
+            {allCuisineTags.map((tag) => {
               const isSelected =
                 tag === 'All'
                   ? !filters.cuisineTag
