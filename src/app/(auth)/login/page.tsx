@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Spinner as HeroSpinner } from "@heroui/react";
 import {
@@ -16,7 +15,6 @@ import { loginSchema } from "@/lib/validation/auth";
 import { authClient, useSession } from "@/lib/auth/client";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { data: session, isPending } = useSession();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,8 +24,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (!isPending && session?.user) router.push("/dashboard");
-  }, [session, isPending, router]);
+    if (!isPending && session?.user) {
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get("redirect");
+      window.location.assign(requested && requested.startsWith("/") ? requested : "/dashboard");
+    }
+  }, [session, isPending]);
 
   if (isPending || session?.user) return null;
 
@@ -53,10 +55,27 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    const { error } = await authClient.signIn.email({
-      email: form.email,
-      password: form.password,
-    });
+
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("redirect");
+    const redirect = requested && requested.startsWith("/") ? requested : "/dashboard";
+
+    const timeout = new Promise<{ error: { message: string } }>((_, reject) =>
+      setTimeout(() => reject(new Error("Sign-in is taking longer than usual. Please try again.")), 30000)
+    );
+    let error: { message?: string } | null = null;
+    try {
+      const res = await Promise.race([
+        authClient.signIn.email({
+          email: form.email,
+          password: form.password,
+        }),
+        timeout,
+      ]);
+      error = res.error;
+    } catch (e) {
+      error = { message: (e as Error).message || "Something went wrong" };
+    }
     setLoading(false);
 
     if (error) {
@@ -67,7 +86,7 @@ export default function LoginPage() {
           : error.message || "Something went wrong";
       setApiError(message);
     } else {
-      router.push("/dashboard");
+      window.location.assign(redirect);
     }
   };
 
@@ -79,9 +98,18 @@ export default function LoginPage() {
     setErrors({});
     setApiError("");
     setQuickAction(action);
-    const { error } = await authClient.signIn.email({ email, password });
+    const timeout = new Promise<{ error: { message: string } }>((_, reject) =>
+      setTimeout(() => reject(new Error(`${action} login is taking longer than usual. Please try again.`)), 30000)
+    );
+    let error: { message?: string } | null = null;
+    try {
+      const res = await Promise.race([authClient.signIn.email({ email, password }), timeout]);
+      error = res.error;
+    } catch (e) {
+      error = { message: (e as Error).message || `${action} login failed` };
+    }
     setQuickAction(null);
-    if (!error) router.push("/dashboard");
+    if (!error) window.location.assign("/dashboard");
     else setApiError(error.message || `${action} login failed`);
   };
 

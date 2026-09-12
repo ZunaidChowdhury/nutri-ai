@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Spinner as HeroSpinner } from "@heroui/react";
 import {
@@ -20,7 +19,6 @@ import { authClient, useSession } from "@/lib/auth/client";
 import { useUploadThing } from "@/lib/uploadthing";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { data: session, isPending } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
@@ -43,8 +41,8 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    if (!isPending && session?.user) router.push("/dashboard");
-  }, [session, isPending, router]);
+    if (!isPending && session?.user) window.location.assign("/dashboard");
+  }, [session, isPending]);
 
   if (isPending || session?.user) return null;
 
@@ -82,12 +80,24 @@ export default function RegisterPage() {
       }
     }
 
-    const { error } = await authClient.signUp.email({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      image: imageUrl,
-    });
+    const timeout = new Promise<{ error: { message: string } }>((_, reject) =>
+      setTimeout(() => reject(new Error("Sign-up is taking longer than usual. Please try again.")), 30000)
+    );
+    let error: { message?: string } | null = null;
+    try {
+      const res = await Promise.race([
+        authClient.signUp.email({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          image: imageUrl,
+        }),
+        timeout,
+      ]);
+      error = res.error;
+    } catch (e) {
+      error = { message: (e as Error).message || "Something went wrong" };
+    }
     setLoading(false);
 
     if (error) {
@@ -99,7 +109,7 @@ export default function RegisterPage() {
           : error.message || "Something went wrong";
       setApiError(message);
     } else {
-      router.push("/dashboard");
+      window.location.assign("/dashboard");
     }
   };
 
