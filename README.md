@@ -1,316 +1,318 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./public/NutriAI-logo.png">
-  <img alt="NutriAI" src="./public/NutriAI-logo.png" width="600">
-</picture>
+# 🏆🥗 NutriAI – AI-Powered Meal Planning & Nutrition Tracking Platform
 
-<p align="center">
-  <strong>AI-Powered Meal Planning & Nutrition Tracking</strong><br>
-  Personalized 7-day meal plans · AI nutrition analysis · Smart food classification
-</p>
-
-<p align="center">
-  <a href="https://nutri-ai-sepia.vercel.app" target="_blank"><strong>🌐 Live Demo</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
-  <a href="#getting-started"><strong>Setup</strong></a> ·
-  <a href="#project-structure"><strong>Structure</strong></a>
-</p>
-
-<p align="center">
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js">
-  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript">
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss">
-  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb">
-  <img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square">
-</p>
+A modern **full-stack AI nutrition and meal planning platform** that empowers mindful eaters to discover macro-balanced recipes, generate personalized 7-day meal plans using intelligent multi-agent AI, and track daily food intake with automated nutritional deficiency analysis. NutriAI provides a comprehensive wellness suite with role-based dashboards, interactive charts, and a responsive user experience.
 
 ---
 
-## Overview
+## 🌐 Live URL
+> Frontend: https://nutri-ai-sepia.vercel.app
 
-NutriAI is a full-stack web application that leverages three specialized AI agents to simplify meal planning and nutrition tracking. Log your meals, get AI-generated 7-day meal plans tailored to your goals, and receive automated nutrition analysis — all powered by Groq's LLM runtime through a clean LangChain agent architecture.
-
-The backend ([nutri-ai-server](https://github.com/ZunaidChowdhury/nutri-ai-server)) runs as a separate Express API with the full agent pipeline, while this Next.js frontend provides a polished, responsive interface with light/dark theme support.
-
----
-
-## Features
-
-### 🤖 Three Specialized AI Agents
-
-| Agent | Purpose |
-|---|---|
-| **Meal Planning Agent** | Generates personalized 7-day plans from your goals, restrictions, and calorie targets — uses dietary preferences, meal database lookups, and nutritional balance checks |
-| **Nutrition Analysis Agent** | Analyzes your last 7 days of logged meals, identifies nutrient deficiencies, and provides actionable recommendations with optional prior-report awareness |
-| **Food Classification Agent** | Suggests cuisine tags with confidence scores when adding new meals — one-shot LLM call for instant inline suggestions |
-
-All agents follow an identical pipeline: **Agent Router → Agent → Prompt → Tools → ChatGroq → Structured Output → Zod Validation → Response**, with a single shared `ChatGroq` service and exactly four internal tools (no external API calls).
-
-### 🍽️ Meal Management
-- **Explore** – Browse, search, filter by cuisine/calories, sort, and paginate meals
-- **Detail pages** – Full macros, ratings, and related meal suggestions
-- **Add meals** – Upload images via Uploadthing, with AI-powered cuisine tag suggestions
-- **Manage meals** – View and delete your own meals (admin can delete any)
-
-### 📊 Dashboard & Analytics
-- **Calories-over-time** line chart (7–30 days)
-- **Macro breakdown** pie/bar chart (protein, carbs, fat)
-- **One-click nutrition analysis** with AI-powered recommendations
-
-### 🎨 User Experience
-- **Light/dark theme** with system preference detection and no-flash hydration
-- **Fully responsive** – mobile, tablet, desktop
-- **Hero UI v3** components with Tailwind CSS v4
-- **ISR/SSR/SSG** rendering strategy per page type for optimal performance
-- **Framer Motion** animations on the landing page
-
-### 🔐 Authentication
-- Email/password registration and login
-- Google OAuth social login
-- Demo login with one-click seeded credentials
-- JWT in httpOnly, secure cookies
-- Role-based access (user / admin)
-
-### 📱 Pages
-| Route | Type | Description |
-|---|---|---|
-| `/` | ISR (1h) | Landing page with 8 sections |
-| `/meals` | SSR + CSR | Explore meals with filters |
-| `/meals/:id` | SSG + ISR (5m) | Meal details |
-| `/dashboard` | SSR, force-dynamic | Charts and nutrition analysis |
-| `/meal-plan` | CSR | 7-day meal plan generator |
-| `/items/add` | SSR + CSR | Add a new meal |a
-| `/items/manage` | SSR + CSR | Manage your meals |
-| `/login` | SSG | Login page |
-| `/register` | SSG | Registration page |
-| `/about` | SSG | About page |
-| `/contact` | SSG | Contact page |
+> Backend: https://nutri-ai-server.onrender.com/api
 
 ---
 
-## Tech Stack
+# 🎯 Purpose
 
-### Frontend (this repo)
+NutriAI is designed to connect **health-conscious individuals, fitness enthusiasts, mindful eaters, and nutritionists** with autonomous AI agents.
 
-| Category | Technology |
-|---|---|
-| **Framework** | Next.js 16 (App Router) |
-| **Language** | TypeScript 5 |
-| **UI Library** | Hero UI v3 (`@heroui/react`) |
-| **Styling** | Tailwind CSS v4 |
-| **State (Server)** | TanStack Query 5 |
-| **State (Client)** | Redux Toolkit 2.6 |
-| **Auth** | BetterAuth (credentials + Google OAuth) |
-| **Charts** | Recharts 2.15 |
-| **Animations** | Framer Motion 12 |
-| **Validation** | Zod 4 |
-| **Image Upload** | Uploadthing |
-| **Icons** | Lucide React, React Icons |
-| **Notifications** | React Toastify |
-| **React Compiler** | Enabled |
-
-### Backend ([separate repo](https://github.com/ZunaidChowdhury/nutri-ai-server))
-
-| Category | Technology |
-|---|---|
-| **Runtime** | Node.js, Express.js |
-| **Language** | TypeScript |
-| **Database** | MongoDB with Mongoose |
-| **AI Orchestration** | LangChain.js (`ChatGroq`, `ChatPromptTemplate`, Tool Calling, `withStructuredOutput`) |
-| **AI Provider** | Groq |
-| **Validation** | Zod 4 |
-| **Auth** | BetterAuth (server adapter) + JWT via `jose` |
-
-### Infrastructure
-
-| Component | Service |
-|---|---|
-| **Frontend Hosting** | [Vercel](https://nutri-ai-sepia.vercel.app) |
-| **Backend Hosting** | Render / Railway |
-| **Database** | MongoDB Atlas |
-| **Image Storage** | Uploadthing |
-| **AI Runtime** | Groq |
+Users can explore macro-balanced meals, log their daily dietary intake, and generate custom 7-day meal plans calibrated to their health goals (weight loss, maintenance, muscle building) and dietary restrictions (vegan, keto, halal, gluten-free). Administrators oversee the meal catalog, manage users, and curate global cuisine tags to ensure high-quality dietary data across the platform.
 
 ---
 
-## Architecture
+# ✨ Key Features
 
-### Agent Pipeline (Backend)
+### 👤 Authentication & Authorization
 
-```
-Request → Route → Controller → Agent Router (dispatch only)
-                                           ↓
-                              MealPlanningAgent | NutritionAgent | FoodClassificationAgent
-                                           ↓
-                                    ChatPromptTemplate
-                                           ↓
-                              Optional Tools (4 internal tools)
-                                           ↓
-                                    ChatGroq (shared LLM)
-                                           ↓
-                              withStructuredOutput() → Zod Validation (retry once)
-                                           ↓
-                              Save to MongoDB (if applicable) → Response
-```
+* Secure authentication using **Better Auth**
+* JWT session management with httpOnly cookies
+* Email & Password registration and login
+* Google OAuth Social Sign-In
+* Role-based access control (Admin, User)
+* Protected route middleware and server-side session verification
 
-### Frontend Backend Communication
+---
 
-```
-Next.js Frontend (Vercel)
-     ↕ REST API (JSON)
-Express Backend (Render/Railway)
-     ↕ Mongoose
-MongoDB Atlas
-     ↕
-Groq (AI via LangChain)
+### 🤖 Tri-Agent AI System (LangChain & Groq)
+
+* **Meal Planning Agent**: Generates personalized 7-day meal plans (breakfast, lunch, dinner, snack) balanced for target calories, macros, and restrictions using either the global catalog or the user's bookmarked library
+* **Nutrition Analysis Agent**: Analyzes the last 7 days of logged foods from the food diary, detects macro/micronutrient deficiencies, and delivers actionable recommendations
+* **Food Classification Agent**: Automatically analyzes meal titles and descriptions to suggest accurate cuisine tags with confidence scoring
+* Shared **ChatGroq** LLM runtime with internal LangChain tools and strict Zod structured output validation
+
+---
+
+### 🍽️ Meal Exploration & Management
+
+* Browse, search, filter, and paginate meals across global cuisines (Bangladeshi, Italian, Japanese, Turkish, Mexican, etc.)
+* Filter meals by calorie range presets (`< 400`, `400 - 600`, `600 - 800`, `> 800` kcal)
+* Dynamic cuisine quick-pill carousel with smooth scrolling arrow navigation
+* Comprehensive meal details: calorie count, macros (protein, carbs, fat), ingredients, and ratings
+* Create custom meals with image uploads via **UploadThing** and AI cuisine detection
+* Full CRUD capabilities with public/private visibility control
+
+---
+
+### 🔖 Curated Meal Library & 7-Day AI Planner
+
+* One-click meal bookmarking to build a personal library (`/items/selected`)
+* Curate 10+ selected meals to generate custom 7-day plans exclusively from favorite dishes
+* Interactive daily meal cards with macro breakdowns, ingredients, and preparation steps
+* Instant one-click **PDF Meal Plan Export** powered by jsPDF
+
+---
+
+### 📊 Food Logging & Interactive Analytics Dashboard
+
+* Quick meal logging from catalog dishes, generated meal plan days, or custom entries
+* Real-time **Calories-Over-Time** trend lines and **Macro Distribution** charts using **Recharts**
+* One-click **"Analyze My Nutrition"** generating structured AI nutrition deficiency reports
+* Daily diary management with quick deletion and date-stamped intake logs
+
+---
+
+### 🛠️ Admin Panel (`/admin`)
+
+* Manage all meals across the platform
+* Toggle meal visibility (`public`, `private`, `locked`)
+* Delete inappropriate or duplicate meals
+* Manage user accounts, inspect activity, and promote/demote roles
+* Dynamic cuisine management with admin-only cuisine creation
+
+---
+
+### 🎨 UI & UX Design
+
+* Pixel-perfect modern design built with **Hero UI v3** & **Tailwind CSS v4**
+* Fully responsive on all devices (mobile, tablet, desktop)
+* Smooth micro-interactions and transitions with **Framer Motion**
+* Seamless light and dark mode with pre-hydration theme detection
+* Responsive floating Developer Bar with animated 1s entrance and social platform integrations
+* Interactive Toast notifications via **React Toastify**
+* Comprehensive mobile navigation drawer and responsive grids
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+* Next.js 16 (App Router)
+* React 19
+* TypeScript 5
+* Tailwind CSS v4
+* Hero UI v3
+* Better Auth
+* JWT Authentication
+* Redux Toolkit
+* TanStack React Query v5
+* Framer Motion 12
+* UploadThing
+* Recharts
+* jsPDF & jsPDF AutoTable
+* Lucide React & React Icons
+* React Toastify
+
+---
+
+## Backend
+
+* Node.js
+* Express.js 5
+* TypeScript
+* MongoDB & Mongoose
+* LangChain.js
+* ChatGroq (Groq LLM)
+* Better Auth
+* JOSE (JWT)
+* Zod
+* CORS
+* Dotenv
+* TSX / Nodemon
+
+---
+
+# 📦 NPM Packages Used
+
+## Frontend
+
+```txt
+@heroui/react
+@heroui/styles
+@reduxjs/toolkit
+@tanstack/react-query
+@uploadthing/react
+bcryptjs
+better-auth
+framer-motion
+jspdf
+jspdf-autotable
+lucide-react
+mongodb
+next
+next-themes
+react
+react-dom
+react-icons
+react-redux
+react-toastify
+recharts
+uploadthing
+zod
 ```
 
-### Rendering Strategy
+## Backend
 
-| Strategy | Pages |
-|---|---|
-| **ISR** | Home (`/`, 1h), Meal details (`/meals/:id`, 5m) |
-| **SSR + CSR** | Explore (`/meals`), Dashboard (`/dashboard`, force-dynamic), Add/Manage items |
-| **CSR** | Meal plan generator (`/meal-plan`) |
-| **SSG** | Login, Register, About, Contact |
+```txt
+@langchain/groq
+@types/cors
+@types/express
+@types/node
+bcryptjs
+cors
+dotenv
+express
+jose
+langchain
+mongoose
+tsx
+typescript
+zod
+```
 
 ---
 
-## Getting Started
+# 🚀 Installation & Setup
 
-### Prerequisites
-- Node.js 20+
-- npm
-- MongoDB Atlas cluster (or local MongoDB)
-- Groq API key
-- Google OAuth credentials (optional, for social login)
-- Uploadthing account (optional, for image uploads)
-
-### Clone & Install
+## 1. Clone the repository
 
 ```bash
 git clone https://github.com/ZunaidChowdhury/nutri-ai.git
+git clone https://github.com/ZunaidChowdhury/nutri-ai-server.git
+```
+
+---
+
+## 2. Install dependencies
+
+### Frontend
+
+```bash
 cd nutri-ai
 npm install
 ```
 
-### Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in the values:
+### Backend
 
 ```bash
-cp .env.example .env.local
+cd nutri-ai-server
+npm install
 ```
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | Yes | Backend API base URL (e.g., `http://localhost:5000`) |
-| `NEXT_PUBLIC_APP_URL` | Yes | Frontend URL (e.g., `http://localhost:3000`) |
-| `BETTER_AUTH_SECRET` | Yes | Secret for JWT signing |
-| `MONGODB_URI` | Yes | MongoDB connection string |
-| `BETTER_AUTH_URL` | Yes | BetterAuth URL (same as frontend URL) |
-| `GOOGLE_CLIENT_ID` | For Google auth | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | For Google auth | Google OAuth client secret |
-| `UPLOADTHING_TOKEN` | For image upload | Uploadthing API token |
+---
 
-### Run the Development Server
+## 3. Configure Environment Variables
+
+### Frontend (.env.local)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+BETTER_AUTH_SECRET=your_better_auth_secret_here
+BETTER_AUTH_URL=http://localhost:3000
+
+MONGODB_URI=your_mongodb_connection_string
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+UPLOADTHING_TOKEN=your_uploadthing_token
+
+NEXT_PUBLIC_SHOW_DEV_BAR=1
+ADMIN_EMAIL=programmer.zunaid@gmail.com
+```
+
+### Backend (.env)
+
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+GROQ_API_KEY=your_groq_api_key
+
+CORS_ORIGIN=http://localhost:3000
+
+JWT_SECRET=your_jwt_secret
+BETTER_AUTH_SECRET=your_better_auth_secret
+
+NODE_ENV=development
+```
+
+---
+
+## 4. Run the application
+
+### Backend
+
+```bash
+# Seed initial meals and cuisines (optional)
+npm run seed
+
+# Start development server
+npm run dev
+```
+
+### Frontend
 
 ```bash
 npm run dev
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+---
 
-> The backend must be running separately. Clone and set up [nutri-ai-server](https://github.com/ZunaidChowdhury/nutri-ai-server) as well.
+# 🔒 Authentication
 
-### Available Scripts
-
-| Script | Description |
-|---|---|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+* Better Auth
+* JWT Session Authentication
+* Google OAuth Social Login
+* Protected Routes Middleware
+* Role-Based Access Control (Admin / User)
+* Secure httpOnly Cookie Management
 
 ---
 
-## Project Structure
+# 📈 Core Functionalities
 
-```
-nutri-ai/
-├── src/
-│   ├── app/                    # Next.js App Router pages & layouts
-│   │   ├── (public)/           # Public routes (meals, about, contact)
-│   │   ├── (auth)/             # Auth routes (login, register)
-│   │   ├── (protected)/        # Protected routes (dashboard, meal-plan, items)
-│   │   └── api/                # API routes (auth, uploadthing)
-│   ├── components/
-│   │   ├── ai/                 # Agent loading state component
-│   │   ├── dashboard/          # Charts and dashboard components
-│   │   ├── feedback/           # Spinner, ErrorFallback, EmptyState, etc.
-│   │   ├── landing/            # 8 landing page sections
-│   │   ├── layout/             # Navbar, Footer
-│   │   ├── meals/              # MealCard, MealGrid, ExploreContent
-│   │   └── ui/                 # ThemeSwitch, icons
-│   ├── lib/
-│   │   ├── actions/            # Mutations (createMeal, deleteMeal)
-│   │   ├── api/                # GET API wrappers per entity
-│   │   ├── auth/               # BetterAuth config & client
-│   │   ├── core/               # serverFetch, serverMutation
-│   │   ├── types/              # TypeScript type definitions
-│   │   └── validation/         # Zod schemas (login, register)
-│   ├── providers/              # Context providers (theme, Redux, Query, HeroUI)
-│   ├── store/                  # Redux Toolkit store & slices
-│   ├── proxy.ts                # Route protection (auth cookie check)
-│   └── hero.ts                 # Hero UI Tailwind plugin
-├── public/                     # Static assets
-├── engineering/                # Planning documents (gitignored)
-└── package.json
-```
+* Tri-Agent Autonomous AI Pipeline (Meal Planning, Nutrition Analysis, Food Classification)
+* Dynamic 7-Day Personalized Meal Plan Generation
+* Curated Meal Library & One-Click Selection System
+* Real-Time Daily Food Logging & Food Diary
+* Interactive Caloric & Macronutrient Analytics Charts
+* Automated Deficiency Detection & Diet Recommendations
+* Comprehensive Meal Catalog Search, Filter & Pagination
+* Dynamic Cuisine Quick-Pill Carousel with Smooth Scrolling
+* PDF Meal Plan Export with Detailed Daily Itineraries
+* Cloud Image Upload via UploadThing
+* Full CRUD Operations for Custom Meals
+* Admin Dashboard for User Role & Meal Catalog Control
+* Responsive Light / Dark Theme Architecture
 
 ---
 
-## Backend Repository
+# 👨‍💻 Author
 
-The backend lives in a separate repository:
+**Zunaid Chowdhury**
 
-🔗 **[nutri-ai-server](https://github.com/ZunaidChowdhury/nutri-ai-server)**
+Full Stack MERN & Next.js Developer
 
-It provides the Express API with:
-- All three AI agents (Meal Planning, Nutrition Analysis, Food Classification)
-- Agent Router for dispatching requests
-- Four internal LangChain tools
-- CRUD endpoints for meals
-- BetterAuth server integration with MongoDB
-- Rate limiting, error handling, and Zod validation
+📧 [programmer.zunaid@gmail.com](mailto:programmer.zunaid@gmail.com)
 
 ---
 
-## Deployment
-
-### Frontend (Vercel)
-
-The frontend is deployed on Vercel with automatic deployments from the `main` branch.
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)](https://nutri-ai-sepia.vercel.app)
-
-### Backend (Render/Railway)
-
-The backend is deployed on Render or Railway. Ensure all environment variables are set in the production environment.
-
-### Database
-
-MongoDB Atlas production cluster — create a free cluster and whitelist deployment IPs.
+## ⭐ If you like this project, don't forget to give it a star!
 
 ---
 
-## License
-
-This project is licensed under the [Apache License 2.0](LICENSE).
-
----
-
-<p align="center">
-  Built by <a href="https://github.com/ZunaidChowdhury">Zunaid Chowdhury</a>
-</p>
+## 📸 Screenshot
+<div align="center">
+  <img src="./nutri-ai-fullshot.png" width="100%" alt="NutriAI Homepage Screenshot" />
+</div>
