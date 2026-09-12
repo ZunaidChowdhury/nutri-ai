@@ -24,8 +24,10 @@ export default function RootLayout({
         </head>
       <body className="min-h-full flex flex-col">
         <Providers>
-          {process.env.NEXT_PUBLIC_SHOW_DEV_BAR === "1" && <DeveloperBar />}
-          <Navbar />
+          <header className="sticky top-0 z-50 w-full">
+            {process.env.NEXT_PUBLIC_SHOW_DEV_BAR === "1" && <DeveloperBar />}
+            <Navbar />
+          </header>
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
