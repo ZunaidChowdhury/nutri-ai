@@ -5,6 +5,7 @@ import { ThemeScript } from "@/components/ThemeScript";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import DeveloperBar from "@/components/DeveloperBar";
+import ServerWakeUpBanner from "@/components/layout/ServerWakeUpBanner";
 
 export const metadata: Metadata = {
   title: "NutriAI",
@@ -27,6 +28,7 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full">
             {process.env.NEXT_PUBLIC_SHOW_DEV_BAR === "1" && <DeveloperBar />}
             <Navbar />
+            <ServerWakeUpBanner />
           </header>
           <main className="flex-1">{children}</main>
           <Footer />
