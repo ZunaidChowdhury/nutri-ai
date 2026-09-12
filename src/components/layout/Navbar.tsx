@@ -77,7 +77,7 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-[#DCE9E4] bg-white/85 backdrop-blur-lg dark:border-[#263835] dark:bg-[#0a0a0a]/85">
+    <nav className="w-full border-b border-[#DCE9E4] bg-white/85 backdrop-blur-lg dark:border-[#263835] dark:bg-[#0a0a0a]/85">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <Link
