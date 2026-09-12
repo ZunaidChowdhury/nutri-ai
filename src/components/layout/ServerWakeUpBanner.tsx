@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiLightningBolt, HiCheckCircle, HiX, HiRefresh } from 'react-icons/hi';
+import { HiCheckCircle, HiX, HiRefresh } from 'react-icons/hi';
 
 const HEALTH_URL =
   process.env.NEXT_PUBLIC_HEALTH_URL ||
@@ -10,15 +10,14 @@ const HEALTH_URL =
     ? `${process.env.NEXT_PUBLIC_API_URL}/health`
     : 'https://nutri-ai-server.onrender.com/api/health');
 
-const COUNTDOWN_SECONDS = 30;
-const SLEEP_DETECTION_DELAY_MS = 2000; // If server doesn't respond in 2s, consider it sleeping
+const COUNTDOWN_SECONDS = 20;
+const SLEEP_DETECTION_DELAY_MS = 1000; // If server doesn't respond in 1s, consider it sleeping
 
 export default function ServerWakeUpBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isAwake, setIsAwake] = useState(false);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
   const [isDismissed, setIsDismissed] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,7 +35,6 @@ export default function ServerWakeUpBanner() {
 
       if (res.ok) {
         setIsAwake(true);
-        setHasError(false);
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         if (timerRef.current) clearInterval(timerRef.current);
 
@@ -46,7 +44,7 @@ export default function ServerWakeUpBanner() {
         }, 2500);
       }
     } catch {
-      // In flight or still waking up
+      // Still in flight or waking up
     } finally {
       isCheckingRef.current = false;
     }
@@ -65,12 +63,12 @@ export default function ServerWakeUpBanner() {
         setShowBanner(true);
         setCountdown(COUNTDOWN_SECONDS);
 
-        // Keep pinging every 4 seconds until server responds
+        // Keep pinging every 2 seconds until server responds
         pollIntervalRef.current = setInterval(() => {
           if (!isAwake) {
             checkHealth();
           }
-        }, 4000);
+        }, 2000);
       }
     }, SLEEP_DETECTION_DELAY_MS);
 
@@ -117,75 +115,72 @@ export default function ServerWakeUpBanner() {
           className="relative z-40 w-full overflow-hidden"
         >
           <div
-            className={`relative flex items-center justify-between gap-3 px-4 py-2 sm:px-6 backdrop-blur-md transition-colors duration-500 ${
+            className={`w-full border-b transition-colors duration-500 relative ${
               isAwake
-                ? 'border-b border-emerald-500/30 bg-emerald-500/15 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/60 dark:text-emerald-200'
-                : 'border-b border-amber-400/40 bg-gradient-to-r from-amber-500/15 via-teal-500/10 to-amber-500/15 text-[#163330] dark:border-amber-500/30 dark:from-amber-950/50 dark:via-[#007F78]/25 dark:to-amber-950/50 dark:text-amber-100'
+                ? 'bg-emerald-50/95 border-emerald-200 text-emerald-900 dark:bg-emerald-950/80 dark:border-emerald-800/60 dark:text-emerald-200'
+                : 'bg-amber-50/95 border-amber-200 text-amber-900 dark:bg-amber-950/70 dark:border-amber-800/50 dark:text-amber-200'
             }`}
           >
-            {/* Left side: Icon + Live status countdown message */}
-            <div className="flex items-center gap-2.5">
-              {isAwake ? (
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xs dark:bg-emerald-600">
-                  <HiCheckCircle className="h-4 w-4" />
-                </span>
-              ) : (
-                <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300">
-                  <HiLightningBolt className="h-3.5 w-3.5 animate-pulse" />
-                  <span className="absolute inset-0 rounded-full border border-amber-500/40 animate-ping opacity-50" />
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm font-semibold">
+            {/* Constrained container to 1280px */}
+            <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-2 relative flex items-center justify-center min-h-[40px]">
+              {/* Centered Message */}
+              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium text-center pr-8 pl-2 sm:pr-10">
                 {isAwake ? (
-                  <span className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
-                    <span>✨ Server is awake & ready!</span>
-                  </span>
+                  <>
+                    <HiCheckCircle className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-semibold text-emerald-800 dark:text-emerald-200">
+                      Server is awake & ready!
+                    </span>
+                  </>
                 ) : (
                   <>
-                    <span className="font-bold text-amber-900 dark:text-amber-200">
-                      Waking Server up in
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
                     </span>
-                    <span className="inline-flex items-center justify-center rounded-md bg-amber-500/20 px-2 py-0.5 font-mono font-bold text-amber-800 dark:bg-amber-400/20 dark:text-amber-100">
-                      {countdown > 0 ? `(${countdown} Sec)` : 'Almost ready...'}
+                    <span>
+                      Waking Server up in{' '}
+                      <span className="font-bold font-mono bg-amber-200/70 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">
+                        {countdown > 0 ? `(${countdown} Sec)` : 'Almost ready...'}
+                      </span>
                     </span>
-                    <span className="hidden md:inline text-xs font-normal text-amber-800/80 dark:text-amber-200/70">
-                      (Render free tier sleeps after 15m of inactivity)
+                    <span className="hidden md:inline text-xs text-amber-700/80 dark:text-amber-300/70 font-normal">
+                      • Render backend sleeps after 15m of inactivity
                     </span>
                   </>
                 )}
               </div>
-            </div>
 
-            {/* Right side: Retry action / Dismiss X */}
-            <div className="flex items-center gap-2">
-              {!isAwake && countdown === 0 && (
+              {/* Right Side: Retry / Checking button & 'X' Close button */}
+              <div className="absolute right-4 sm:right-6 lg:right-8 flex items-center gap-1.5">
+                {!isAwake && countdown === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => checkHealth()}
+                    title="Check server again"
+                    className="hidden sm:flex items-center gap-1 rounded-md border border-amber-300/80 bg-amber-100/60 px-2 py-0.5 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-200 dark:border-amber-700/60 dark:bg-amber-900/40 dark:text-amber-200 cursor-pointer"
+                  >
+                    <HiRefresh className="h-3 w-3 animate-spin" />
+                    <span>Checking...</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => checkHealth()}
-                  title="Check server again"
-                  className="flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-500/20 dark:text-amber-200 cursor-pointer"
+                  onClick={() => setIsDismissed(true)}
+                  aria-label="Close waking server banner"
+                  title="Close"
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:text-gray-800 hover:bg-black/5 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <HiRefresh className="h-3 w-3 animate-spin" />
-                  <span>Checking...</span>
+                  <HiX className="h-4 w-4" />
                 </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setIsDismissed(true)}
-                aria-label="Dismiss banner"
-                title="Dismiss"
-                className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200 cursor-pointer"
-              >
-                <HiX className="h-3.5 w-3.5" />
-              </button>
+              </div>
             </div>
 
-            {/* Bottom Progress Bar indicating countdown */}
+            {/* Bottom Progress Bar */}
             {!isAwake && (
               <div
-                className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-amber-500 via-teal-500 to-emerald-500 transition-all duration-1000 ease-linear"
+                className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-amber-400 to-[#007F78] transition-all duration-1000 ease-linear"
                 style={{
                   width: `${Math.min(100, Math.max(0, ((COUNTDOWN_SECONDS - countdown) / COUNTDOWN_SECONDS) * 100))}%`,
                 }}
