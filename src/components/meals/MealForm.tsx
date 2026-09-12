@@ -10,24 +10,24 @@ import {
   Input,
   Label,
   ListBox,
+  Modal,
   Select,
   TextArea,
   TextField,
+  useOverlayState,
 } from '@heroui/react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { UploadButton } from '@uploadthing/react';
 import { z } from 'zod';
 import { createMeal, updateMeal } from '@/lib/actions/meal';
 import { getAuthToken } from '@/lib/core/server';
 import { classifyMeal, type ClassificationResult } from '@/lib/api/classification';
+import { createCuisine } from '@/lib/api/cuisine';
+import { useCuisines, formatCuisineName } from '@/lib/hooks/useCuisines';
+import { useSession } from '@/lib/auth/client';
 import { AgentLoadingState } from '@/components/ai/AgentLoadingState';
 import type { OurFileRouter } from '@/app/api/uploadthing/core';
 import type { Meal } from '@/lib/types/meal';
-
-const CUISINE_TAGS = [
-  'Italian', 'Mexican', 'Japanese', 'Indian', 'American',
-  'Mediterranean', 'Chinese', 'Thai', 'French', 'Korean',
-  'Middle Eastern', 'Vietnamese',
-];
 
 const mealSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -101,6 +101,12 @@ function buildInitialForm(meal?: Meal): FormState {
 export function MealForm({ mode, meal }: MealFormProps) {
   const isEdit = mode === 'edit';
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const user = session?.user as { role?: 'user' | 'admin' } | undefined;
+  const isAdmin = user?.role === 'admin';
+  const { cuisineNames } = useCuisines();
+
   const [imageUrl, setImageUrl] = useState(meal?.imageUrl ?? '');
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,6 +118,43 @@ export function MealForm({ mode, meal }: MealFormProps) {
   const [isClassifying, setIsClassifying] = useState(false);
   const [userOverrodeCuisine, setUserOverrodeCuisine] = useState(false);
   const tokenRef = useRef<string | null>(null);
+
+  // Admin Add Cuisine state
+  const [isAddCuisineOpen, setIsAddCuisineOpen] = useState(false);
+  const [newCuisineName, setNewCuisineName] = useState('');
+  const [addCuisineError, setAddCuisineError] = useState('');
+
+  const addCuisineModal = useOverlayState({
+    isOpen: isAddCuisineOpen,
+    onOpenChange: (open) => {
+      setIsAddCuisineOpen(open);
+      if (!open) {
+        setNewCuisineName('');
+        setAddCuisineError('');
+      }
+    },
+  });
+
+  const addCuisineMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const token = await getAuthToken();
+      if (!token) throw new Error('You must be logged in to add a cuisine');
+      return createCuisine(name, token);
+    },
+    onSuccess: (newCuisine) => {
+      queryClient.invalidateQueries({ queryKey: ['cuisines'] });
+      const formatted = formatCuisineName(newCuisine.name);
+      updateField('cuisineTag', formatted);
+      setUserOverrodeCuisine(true);
+      setNewCuisineName('');
+      setAddCuisineError('');
+      setIsAddCuisineOpen(false);
+    },
+    onError: (err: unknown) => {
+      const error = err as { message?: string };
+      setAddCuisineError(error?.message || 'Failed to add cuisine');
+    },
+  });
 
   useEffect(() => {
     getAuthToken().then((t) => { tokenRef.current = t; });
@@ -299,7 +342,29 @@ export function MealForm({ mode, meal }: MealFormProps) {
 
               {/* Cuisine Select + AI Classification */}
               <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-[#163330] dark:text-[#E8F2EF]">
+                    Cuisine <span className="text-red-500">*</span>
+                  </span>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddCuisineOpen(true);
+                        setAddCuisineError('');
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#007F78] dark:text-[#2DD4BF] hover:text-[#005F5A] dark:hover:text-[#5EEAD4] cursor-pointer"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Add Cuisine</span>
+                    </button>
+                  )}
+                </div>
+
                 <Select
+                  aria-label="Cuisine"
                   placeholder="Select a cuisine type"
                   value={form.cuisineTag || null}
                   onChange={(key) => {
@@ -311,14 +376,13 @@ export function MealForm({ mode, meal }: MealFormProps) {
                   isRequired
                   fullWidth
                 >
-                  <Label>Cuisine</Label>
                   <Select.Trigger>
                     <Select.Value />
                     <Select.Indicator />
                   </Select.Trigger>
                   <Select.Popover>
                     <ListBox>
-                      {CUISINE_TAGS.map((tag) => (
+                      {cuisineNames.map((tag) => (
                         <ListBox.Item key={tag} id={tag} textValue={tag}>
                           {tag}
                           <ListBox.ItemIndicator />
@@ -547,6 +611,73 @@ export function MealForm({ mode, meal }: MealFormProps) {
           </div>
         </div>
       </div>
+
+      {/* Admin Add Cuisine Modal */}
+      {isAdmin && (
+        <Modal state={addCuisineModal}>
+          <Modal.Backdrop>
+            <Modal.Container placement="center" size="sm">
+              <Modal.Dialog>
+                <Modal.Header>
+                  <Modal.Heading className="text-lg font-bold text-[#163330] dark:text-[#E8F2EF]">
+                    Add New Cuisine Type
+                  </Modal.Heading>
+                </Modal.Header>
+                <Modal.Body className="flex flex-col gap-3">
+                  <p className="text-xs text-[#55706B] dark:text-[#A1B8B3]">
+                    As an admin, you can introduce a new cuisine category. It will be available for all meals platform-wide.
+                  </p>
+                  <TextField isRequired fullWidth>
+                    <Label>Cuisine Name</Label>
+                    <Input
+                      placeholder="e.g., Ethiopian, Peruvian, Turkish"
+                      value={newCuisineName}
+                      onChange={(e) => {
+                        setNewCuisineName(e.target.value);
+                        setAddCuisineError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newCuisineName.trim()) {
+                            addCuisineMutation.mutate(newCuisineName.trim());
+                          }
+                        }
+                      }}
+                      autoFocus
+                    />
+                  </TextField>
+                  {addCuisineError && (
+                    <p className="text-xs text-red-500">{addCuisineError}</p>
+                  )}
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button
+                    variant="secondary"
+                    onPress={() => setIsAddCuisineOpen(false)}
+                    isDisabled={addCuisineMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-[#007F78] hover:bg-[#005F5A] text-white"
+                    isPending={addCuisineMutation.isPending}
+                    onPress={() => {
+                      if (!newCuisineName.trim()) {
+                        setAddCuisineError('Please enter a cuisine name');
+                        return;
+                      }
+                      addCuisineMutation.mutate(newCuisineName.trim());
+                    }}
+                  >
+                    Create Cuisine
+                  </Button>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      )}
     </div>
   );
 }

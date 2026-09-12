@@ -20,26 +20,15 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorFallback } from '@/components/feedback/ErrorFallback';
 import { Spinner } from '@/components/feedback/Spinner';
 import { ResultsPagination } from '@/components/ui/ResultsPagination';
+import { useCuisines, FALLBACK_CUISINES } from '@/lib/hooks/useCuisines';
 
-export const CUISINE_TAGS = [
-  'Italian',
-  'Mexican',
-  'Japanese',
-  'Indian',
-  'American',
-  'Mediterranean',
-  'Chinese',
-  'Thai',
-  'French',
-  'Korean',
-  'Middle Eastern',
-  'Vietnamese',
-];
+export const CUISINE_TAGS = FALLBACK_CUISINES;
 
 const PAGE_SIZE = 12;
 
 export default function SelectedMealsPage() {
   const { data: session } = useSession();
+  const { cuisineNames } = useCuisines();
   const userId = session?.user?.id;
   const { selectedMeals, selectedIds, toggleMeal, isLoading, isError, error } =
     useSelectedMeals(userId);
@@ -240,7 +229,7 @@ export default function SelectedMealsPage() {
                     <ListBox.Item id="" textValue="All cuisines">
                       All cuisines
                     </ListBox.Item>
-                    {CUISINE_TAGS.map((tag) => (
+                    {cuisineNames.map((tag) => (
                       <ListBox.Item key={tag} id={tag} textValue={tag}>
                         {tag}
                       </ListBox.Item>
